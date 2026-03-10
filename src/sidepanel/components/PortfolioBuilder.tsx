@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
-import type { FetchedPortfolioData, PortfolioSuggestions, UserProfile } from "../../shared/types";
+import type { FetchedPortfolioData, PortfolioSuggestions } from "../../shared/types";
 
 export default function PortfolioBuilder() {
   const profile = useUIStore((s) => s.profile);
@@ -11,7 +11,7 @@ export default function PortfolioBuilder() {
   const setPortfolioSources = useUIStore((s) => s.setPortfolioSources);
   const setPortfolioData = useUIStore((s) => s.setPortfolioData);
   const setPortfolioSuggestions = useUIStore((s) => s.setPortfolioSuggestions);
-  const setProfile = useUIStore((s) => s.setProfile);
+
   const loadingFetch = useUIStore((s) => s.loading["fetch-portfolio"]);
   const loadingAnalyze = useUIStore((s) => s.loading["analyze-portfolio"]);
   const errorFetch = useUIStore((s) => s.errors["fetch-portfolio"]);
@@ -21,7 +21,7 @@ export default function PortfolioBuilder() {
   const [githubUrl, setGithubUrl] = useState(portfolioSources?.githubUrl || "");
   const [portfolioUrl, setPortfolioUrl] = useState(portfolioSources?.portfolioUrl || "");
   const [showData, setShowData] = useState(false);
-  const [applied, setApplied] = useState<Record<string, boolean>>({});
+  const [copied, setCopied] = useState<Record<string, boolean>>({});
 
   // Sync inputs from stored sources on mount
   useEffect(() => {
@@ -64,23 +64,10 @@ export default function PortfolioBuilder() {
     }
   };
 
-  const applyToProfile = async (field: string, updates: Partial<UserProfile>) => {
-    const current: UserProfile = profile || {
-      name: "",
-      title: "",
-      bio: "",
-      skills: [],
-      hourlyRateMin: 0,
-      hourlyRateMax: 0,
-      experience: "",
-      categories: [],
-      portfolioLinks: [],
-    };
-    const updated = { ...current, ...updates };
-    await chrome.runtime.sendMessage({ type: "SAVE_PROFILE", profile: updated });
-    setProfile(updated);
-    setApplied((prev) => ({ ...prev, [field]: true }));
-    setTimeout(() => setApplied((prev) => ({ ...prev, [field]: false })), 2000);
+  const handleCopy = async (field: string, text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied((prev) => ({ ...prev, [field]: true }));
+    setTimeout(() => setCopied((prev) => ({ ...prev, [field]: false })), 2000);
   };
 
   const loading = loadingFetch || loadingAnalyze;
@@ -216,10 +203,10 @@ export default function PortfolioBuilder() {
                 <div key={i} className="flex items-center justify-between gap-2">
                   <p className="text-sm text-gray-400 flex-1">{title}</p>
                   <button
-                    onClick={() => applyToProfile(`title-${i}`, { title })}
+                    onClick={() => handleCopy(`title-${i}`, title)}
                     className="text-xs text-brand-400 hover:text-brand-300 whitespace-nowrap"
                   >
-                    {applied[`title-${i}`] ? "Applied!" : "Apply"}
+                    {copied[`title-${i}`] ? "Copied!" : "Copy"}
                   </button>
                 </div>
               ))}
@@ -231,10 +218,10 @@ export default function PortfolioBuilder() {
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium text-gray-300 text-sm">Suggested Bio</h4>
               <button
-                onClick={() => applyToProfile("bio", { bio: portfolioSuggestions.suggestedBio })}
+                onClick={() => handleCopy("bio", portfolioSuggestions.suggestedBio)}
                 className="text-xs text-brand-400 hover:text-brand-300"
               >
-                {applied.bio ? "Applied!" : "Apply"}
+                {copied.bio ? "Copied!" : "Copy"}
               </button>
             </div>
             <p className="text-xs text-gray-400 whitespace-pre-wrap leading-relaxed">
@@ -248,16 +235,14 @@ export default function PortfolioBuilder() {
               <h4 className="font-medium text-gray-300 text-sm">Suggested Skills</h4>
               <button
                 onClick={() =>
-                  applyToProfile("skills", {
-                    skills: portfolioSuggestions.suggestedSkills.map((s) => ({
-                      name: s.name,
-                      level: s.level,
-                    })),
-                  })
+                  handleCopy(
+                    "skills",
+                    portfolioSuggestions.suggestedSkills.map((s) => s.name).join(", ")
+                  )
                 }
                 className="text-xs text-brand-400 hover:text-brand-300"
               >
-                {applied.skills ? "Applied!" : "Apply All"}
+                {copied.skills ? "Copied!" : "Copy All"}
               </button>
             </div>
             <div className="space-y-1.5">
@@ -282,14 +267,14 @@ export default function PortfolioBuilder() {
               </span>
               <button
                 onClick={() =>
-                  applyToProfile("rate", {
-                    hourlyRateMin: portfolioSuggestions.rateRecommendation.min,
-                    hourlyRateMax: portfolioSuggestions.rateRecommendation.max,
-                  })
+                  handleCopy(
+                    "rate",
+                    `$${portfolioSuggestions.rateRecommendation.min} - $${portfolioSuggestions.rateRecommendation.max}/hr`
+                  )
                 }
                 className="text-xs text-brand-400 hover:text-brand-300"
               >
-                {applied.rate ? "Applied!" : "Apply"}
+                {copied.rate ? "Copied!" : "Copy"}
               </button>
             </div>
             <p className="text-xs text-gray-500">{portfolioSuggestions.rateRecommendation.reasoning}</p>
