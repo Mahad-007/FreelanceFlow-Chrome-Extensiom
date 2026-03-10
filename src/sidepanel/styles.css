@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-gray-950 text-gray-100 font-sans;
+    width: 100%;
+    min-width: 320px;
+  }
+}
+
+@layer components {
+  .neo-card {
+    @apply bg-gray-900 border-2 border-gray-700 rounded-lg p-4 shadow-[4px_4px_0px_0px_rgba(41,165,255,0.3)];
+  }
+
+  .neo-btn {
+    @apply px-4 py-2 font-bold rounded-lg border-2 border-gray-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]
+           active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all duration-100;
+  }
+
+  .neo-btn-primary {
+    @apply neo-btn bg-brand-600 border-brand-700 text-white hover:bg-brand-500;
+  }
+
+  .neo-btn-secondary {
+    @apply neo-btn bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700;
+  }
+
+  .neo-input {
+    @apply w-full px-3 py-2 bg-gray-800 border-2 border-gray-600 rounded-lg text-gray-100
+           placeholder-gray-500 focus:border-brand-500 focus:outline-none;
+  }
+
+  .neo-badge {
+    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border-2;
+  }
+
+  .score-high {
+    @apply bg-green-900/50 border-green-600 text-green-300;
+  }
+
+  .score-medium {
+    @apply bg-yellow-900/50 border-yellow-600 text-yellow-300;
+  }
+
+  .score-low {
+    @apply bg-red-900/50 border-red-600 text-red-300;
+  }
+
+  .tab-active {
+    @apply border-b-2 border-brand-500 text-brand-400;
+  }
+
+  .tab-inactive {
+    @apply border-b-2 border-transparent text-gray-500 hover:text-gray-300;
+  }
+}

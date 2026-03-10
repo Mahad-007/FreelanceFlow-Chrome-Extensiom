@@ -1,0 +1,41 @@
+{
+  "manifest_version": 3,
+  "name": "FreelanceFlow",
+  "version": "1.0.0",
+  "description": "AI-powered freelance assistant for Upwork — score jobs, generate proposals, improve your profile, and get chat suggestions.",
+  "permissions": ["storage", "activeTab", "sidePanel"],
+  "host_permissions": [
+    "https://www.upwork.com/*",
+    "https://openrouter.ai/*",
+    "https://api.github.com/*",
+    "https://raw.githubusercontent.com/*",
+    "https://*/*"
+  ],
+  "background": {
+    "service_worker": "src/background/service-worker.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.upwork.com/*"],
+      "js": ["src/content/index.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "side_panel": {
+    "default_path": "src/sidepanel/index.html"
+  },
+  "action": {
+    "default_popup": "src/popup/index.html",
+    "default_icon": {
+      "16": "src/assets/icons/icon16.png",
+      "48": "src/assets/icons/icon48.png",
+      "128": "src/assets/icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "src/assets/icons/icon16.png",
+    "48": "src/assets/icons/icon48.png",
+    "128": "src/assets/icons/icon128.png"
+  }
+}
