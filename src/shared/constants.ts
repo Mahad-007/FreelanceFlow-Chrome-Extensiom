@@ -1,9 +1,9 @@
 export const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
-export const DEFAULT_MODEL = "anthropic/claude-opus-4-6";
+export const DEFAULT_MODEL = "anthropic/claude-sonnet-4.6";
 
 export const AVAILABLE_MODELS = [
-  { id: "anthropic/claude-opus-4-6", name: "Claude Opus 4.6" },
-  { id: "anthropic/claude-sonnet-4-6", name: "Claude Sonnet 4.6" },
+  { id: "anthropic/claude-opus-4.6", name: "Claude Opus 4.6" },
+  { id: "anthropic/claude-sonnet-4.6", name: "Claude Sonnet 4.6" },
   { id: "anthropic/claude-sonnet-4-5-20250514", name: "Claude Sonnet 4.5" },
   { id: "anthropic/claude-haiku-4-5-20251001", name: "Claude Haiku 4.5" },
   { id: "openai/gpt-4o", name: "GPT-4o" },

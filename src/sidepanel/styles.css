@@ -3,21 +3,105 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --bg-base: #f6f7fb;
+    --bg-surface: #ffffff;
+    --bg-surface-dim: rgba(255,255,255,0.7);
+    --bg-elevated: #eef0f6;
+    --bg-inset: #e2e5ee;
+    --text-primary: #1a1f36;
+    --text-secondary: #3c4257;
+    --text-tertiary: #5a617a;
+    --text-muted: #696f8c;
+    --text-faint: #8f95b2;
+    --brand-accent: #0a6fe1;
+    --brand-soft: #1187f5;
+    --bg-brand-subtle: #eef5ff;
+    --border-default: #d8dce8;
+    --border-strong: #c1c6d6;
+    --border-subtle: #e8ebf2;
+    --border-brand: #0a6fe1;
+    --shadow-neo: 4px 4px 0 rgba(17,135,245,0.08);
+    --shadow-btn: 3px 3px 0 rgba(26,31,54,0.1);
+    --text-success: #16a34a;
+    --text-warning: #d97706;
+    --text-error: #dc2626;
+    --bg-success: #f0fdf4;
+    --bg-warning: #fffbeb;
+    --bg-error: #fef2f2;
+    --border-success: #16a34a;
+    --border-warning: #d97706;
+    --border-error: #dc2626;
+    --toggle-off: #c1c6d6;
+  }
+
+  .dark {
+    --bg-base: #030712;
+    --bg-surface: #111827;
+    --bg-surface-dim: rgba(17,24,39,0.5);
+    --bg-elevated: #1f2937;
+    --bg-inset: #374151;
+    --text-primary: #f3f4f6;
+    --text-secondary: #d1d5db;
+    --text-tertiary: #9ca3af;
+    --text-muted: #6b7280;
+    --text-faint: #4b5563;
+    --brand-accent: #51c5ff;
+    --brand-soft: #89dbff;
+    --bg-brand-subtle: rgba(19,75,143,0.2);
+    --border-default: #374151;
+    --border-strong: #4b5563;
+    --border-subtle: #1f2937;
+    --border-brand: #1187f5;
+    --shadow-neo: 4px 4px 0 rgba(41,165,255,0.2);
+    --shadow-btn: 3px 3px 0 rgba(0,0,0,0.3);
+    --text-success: #4ade80;
+    --text-warning: #facc15;
+    --text-error: #f87171;
+    --bg-success: rgba(22,101,52,0.5);
+    --bg-warning: rgba(113,63,18,0.5);
+    --bg-error: rgba(127,29,29,0.2);
+    --border-success: #16a34a;
+    --border-warning: #ca8a04;
+    --border-error: #dc2626;
+    --toggle-off: #4b5563;
+  }
+
   body {
-    @apply bg-gray-950 text-gray-100 font-sans;
+    @apply bg-base text-skin-primary font-sans;
+    -webkit-font-smoothing: antialiased;
     width: 100%;
     min-width: 320px;
+  }
+
+  *, *::before, *::after {
+    transition: background-color 150ms ease, border-color 150ms ease;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--border-default);
+    border-radius: 3px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--border-strong);
   }
 }
 
 @layer components {
   .neo-card {
-    @apply bg-gray-900 border-2 border-gray-700 rounded-lg p-4 shadow-[4px_4px_0px_0px_rgba(41,165,255,0.3)];
+    @apply bg-surface border-2 border-skin rounded-lg p-4 shadow-neo;
   }
 
   .neo-btn {
-    @apply px-4 py-2 font-bold rounded-lg border-2 border-gray-700 shadow-[3px_3px_0px_0px_rgba(0,0,0,0.3)]
-           active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all duration-100;
+    @apply px-4 py-2 font-bold rounded-lg border-2 border-skin shadow-btn
+           active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all duration-100
+           focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-1;
   }
 
   .neo-btn-primary {
@@ -25,12 +109,13 @@
   }
 
   .neo-btn-secondary {
-    @apply neo-btn bg-gray-800 border-gray-600 text-gray-200 hover:bg-gray-700;
+    @apply neo-btn bg-elevated border-skin-strong text-skin-primary hover:bg-inset;
   }
 
   .neo-input {
-    @apply w-full px-3 py-2 bg-gray-800 border-2 border-gray-600 rounded-lg text-gray-100
-           placeholder-gray-500 focus:border-brand-500 focus:outline-none;
+    @apply w-full px-3 py-2 bg-elevated border-2 border-skin-strong rounded-lg text-skin-primary
+           placeholder:text-skin-muted focus:border-brand-500 focus:outline-none
+           focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-1;
   }
 
   .neo-badge {
@@ -38,22 +123,25 @@
   }
 
   .score-high {
-    @apply bg-green-900/50 border-green-600 text-green-300;
+    @apply border-skin-success text-skin-success;
+    background: var(--bg-success);
   }
 
   .score-medium {
-    @apply bg-yellow-900/50 border-yellow-600 text-yellow-300;
+    @apply border-skin-warning text-skin-warning;
+    background: var(--bg-warning);
   }
 
   .score-low {
-    @apply bg-red-900/50 border-red-600 text-red-300;
+    @apply border-skin-error text-skin-error;
+    background: var(--bg-error);
   }
 
   .tab-active {
-    @apply border-b-2 border-brand-500 text-brand-400;
+    @apply border-b-2 border-brand-500 text-skin-accent;
   }
 
   .tab-inactive {
-    @apply border-b-2 border-transparent text-gray-500 hover:text-gray-300;
+    @apply border-b-2 border-transparent text-skin-muted hover:text-skin-secondary;
   }
 }

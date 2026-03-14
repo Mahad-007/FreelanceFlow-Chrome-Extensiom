@@ -110,6 +110,7 @@ export interface ChatData {
   contactName: string;
   jobTitle: string;
   messages: ChatMessage[];
+  meetings?: MeetingData[];
 }
 
 export interface ChatMessage {

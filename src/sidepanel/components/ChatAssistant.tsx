@@ -33,8 +33,8 @@ export default function ChatAssistant() {
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-4">💬</div>
-        <h3 className="text-lg font-bold text-gray-300 mb-2">Chat Assistant</h3>
-        <p className="text-sm text-gray-500">Set up your profile in Settings first.</p>
+        <h3 className="text-lg font-bold text-skin-secondary mb-2">Chat Assistant</h3>
+        <p className="text-sm text-skin-muted">Set up your profile in Settings first.</p>
       </div>
     );
   }
@@ -43,11 +43,11 @@ export default function ChatAssistant() {
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-4">💬</div>
-        <h3 className="text-lg font-bold text-gray-300 mb-2">Chat Assistant</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="text-lg font-bold text-skin-secondary mb-2">Chat Assistant</h3>
+        <p className="text-sm text-skin-muted">
           Open an Upwork conversation to get reply suggestions.
         </p>
-        <p className="text-xs text-gray-600 mt-2">Visit: upwork.com/ab/messages</p>
+        <p className="text-xs text-skin-faint mt-2">Visit: upwork.com/ab/messages</p>
       </div>
     );
   }
@@ -63,9 +63,9 @@ export default function ChatAssistant() {
       {/* Chat Context */}
       <div className="neo-card">
         <div className="flex items-center justify-between mb-2">
-          <h3 className="font-bold text-sm text-brand-400">{chatData.contactName}</h3>
+          <h3 className="font-bold text-sm text-skin-accent">{chatData.contactName}</h3>
           {chatData.jobTitle && (
-            <span className="text-xs text-gray-500">{chatData.jobTitle}</span>
+            <span className="text-xs text-skin-muted">{chatData.jobTitle}</span>
           )}
         </div>
         <div className="max-h-32 overflow-y-auto space-y-1">
@@ -74,8 +74,8 @@ export default function ChatAssistant() {
               key={i}
               className={`text-xs p-2 rounded ${
                 msg.sender === chatData.contactName
-                  ? "bg-gray-800 text-gray-400"
-                  : "bg-brand-900/20 text-brand-300"
+                  ? "bg-elevated text-skin-tertiary"
+                  : "bg-brand-subtle text-skin-soft"
               }`}
             >
               <span className="font-medium">{msg.sender}: </span>
@@ -95,8 +95,8 @@ export default function ChatAssistant() {
       </button>
 
       {error && (
-        <div className="neo-card border-red-600 bg-red-900/20">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="neo-card border-skin-error bg-status-error">
+          <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
 
@@ -110,17 +110,17 @@ export default function ChatAssistant() {
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
                     <span>{meta.icon}</span>
-                    <span className="font-medium text-sm text-gray-300">{meta.label}</span>
-                    <span className="text-xs text-gray-500">{meta.desc}</span>
+                    <span className="font-medium text-sm text-skin-secondary">{meta.label}</span>
+                    <span className="text-xs text-skin-muted">{meta.desc}</span>
                   </div>
                   <button
                     onClick={() => handleCopy(reply.text, i)}
-                    className="text-xs text-brand-400 hover:text-brand-300"
+                    className="text-xs text-skin-accent hover:text-skin-soft"
                   >
                     {copiedIdx === i ? "✓ Copied!" : "📋 Copy"}
                   </button>
                 </div>
-                <p className="text-sm text-gray-400 whitespace-pre-wrap">{reply.text}</p>
+                <p className="text-sm text-skin-tertiary whitespace-pre-wrap">{reply.text}</p>
               </div>
             );
           })}

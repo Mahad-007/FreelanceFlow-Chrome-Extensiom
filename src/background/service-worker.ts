@@ -192,6 +192,20 @@ async function handlePanelMessage(message: PanelMessage): Promise<unknown> {
   }
 }
 
+// Migrate stale model IDs (hyphens → dots) on startup
+chrome.runtime.onInstalled.addListener(async () => {
+  const MODEL_RENAMES: Record<string, string> = {
+    "anthropic/claude-opus-4-6": "anthropic/claude-opus-4.6",
+    "anthropic/claude-sonnet-4-6": "anthropic/claude-sonnet-4.6",
+  };
+  const settingsResult = await chrome.storage.local.get(STORAGE_KEYS.SETTINGS);
+  const saved = settingsResult[STORAGE_KEYS.SETTINGS];
+  if (saved?.aiModel && MODEL_RENAMES[saved.aiModel]) {
+    saved.aiModel = MODEL_RENAMES[saved.aiModel];
+    await chrome.storage.local.set({ [STORAGE_KEYS.SETTINGS]: saved });
+  }
+});
+
 // Cleanup old score cache on startup
 chrome.runtime.onInstalled.addListener(async () => {
   const result = await chrome.storage.local.get(STORAGE_KEYS.CACHED_SCORES);

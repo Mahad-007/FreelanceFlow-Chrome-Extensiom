@@ -60,7 +60,7 @@ export async function testApiKey(apiKey: string): Promise<boolean> {
         "X-Title": "FreelanceFlow Extension",
       },
       body: JSON.stringify({
-        model: "openai/gpt-4o-mini",
+        model: "anthropic/claude-sonnet-4.6",
         messages: [{ role: "user", content: "Say ok" }],
         max_tokens: 5,
       }),

@@ -24,18 +24,31 @@ export default function App() {
   const setActiveTab = useUIStore((s) => s.setActiveTab);
   const initialize = useUIStore((s) => s.initialize);
   const settings = useUIStore((s) => s.settings);
+  const setSettings = useUIStore((s) => s.setSettings);
   const { pageType } = usePageData();
 
   useEffect(() => {
     initialize();
   }, [initialize]);
 
+  // Sync theme to DOM
+  useEffect(() => {
+    document.documentElement.classList.toggle("dark", settings.theme === "dark");
+  }, [settings.theme]);
+
+  const toggleTheme = async () => {
+    const newTheme: "light" | "dark" = settings.theme === "dark" ? "light" : "dark";
+    const updated = { ...settings, theme: newTheme };
+    await chrome.runtime.sendMessage({ type: "SAVE_SETTINGS", settings: updated });
+    setSettings(updated);
+  };
+
   // Show settings if no API key configured
   const needsSetup = !settings.openrouterApiKey;
 
   if (needsSetup || showSettings) {
     return (
-      <div className="p-4">
+      <div className="p-4 overflow-y-auto max-h-screen">
         <Settings onClose={needsSetup ? undefined : () => setShowSettings(false)} />
       </div>
     );
@@ -44,15 +57,22 @@ export default function App() {
   return (
     <div className="flex flex-col h-screen">
       {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-gray-700 bg-gray-900">
-        <h1 className="text-lg font-bold text-brand-400">FreelanceFlow</h1>
+      <div className="flex items-center justify-between px-4 py-3 border-b-2 border-skin bg-surface">
+        <h1 className="text-lg font-bold text-skin-accent">FreelanceFlow</h1>
         <div className="flex items-center gap-2">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-skin-muted">
             {pageType !== "unknown" ? `📍 ${pageType}` : ""}
           </span>
           <button
+            onClick={toggleTheme}
+            className="p-1.5 rounded-lg hover:bg-elevated text-skin-muted hover:text-skin-primary transition-colors"
+            title="Toggle theme"
+          >
+            {settings.theme === "dark" ? "☀️" : "🌙"}
+          </button>
+          <button
             onClick={() => setShowSettings(true)}
-            className="p-1.5 rounded-lg hover:bg-gray-800 text-gray-400 hover:text-gray-200 transition-colors"
+            className="p-1.5 rounded-lg hover:bg-elevated text-skin-tertiary hover:text-skin-primary transition-colors"
             title="Settings"
           >
             ⚙️
@@ -61,7 +81,7 @@ export default function App() {
       </div>
 
       {/* Tabs */}
-      <div className="flex border-b-2 border-gray-700 bg-gray-900/50 overflow-x-auto">
+      <div className="flex border-b-2 border-skin bg-surface-dim overflow-x-auto">
         {TABS.map((tab) => (
           <button
             key={tab.id}
@@ -81,7 +101,7 @@ export default function App() {
         {activeTab === "profile-scanner" && (
           <>
             <PortfolioBuilder />
-            <div className="mt-6 pt-6 border-t-2 border-gray-800">
+            <div className="mt-6 pt-6 border-t-2 border-skin-subtle">
               <ProfileScanner />
             </div>
           </>
@@ -90,7 +110,7 @@ export default function App() {
         {activeTab === "proposal" && (
           <>
             <ProposalGenerator />
-            <div className="mt-6 pt-6 border-t-2 border-gray-800">
+            <div className="mt-6 pt-6 border-t-2 border-skin-subtle">
               <ProfileImprover />
             </div>
           </>

@@ -1,8 +1,11 @@
 import { observePageChanges } from "./page-observer";
 import { scrapeProfile } from "./scrapers/profile-scraper";
 import { scrapeJobSearch, scrapeJobDetail } from "./scrapers/job-scraper";
-import { scrapeChat } from "./scrapers/chat-scraper";
+import { scrapeChat, observeNewMessages } from "./scrapers/chat-scraper";
+import { scrapeMeetings } from "./scrapers/meeting-scraper";
 import type { PageType, ScrapedPageData } from "../shared/types";
+
+let cleanupObserver: (() => void) | null = null;
 
 function detectPageType(url: string): PageType {
   const path = new URL(url).pathname;
@@ -33,14 +36,20 @@ async function scrapePage(pageType: PageType): Promise<ScrapedPageData["data"]> 
       return scrapeJobSearch();
     case "job-detail":
       return scrapeJobDetail();
-    case "messages":
-      return scrapeChat();
+    case "messages": {
+      const chat = scrapeChat();
+      chat.meetings = scrapeMeetings();
+      return chat;
+    }
     default:
       return null;
   }
 }
 
 async function handlePageChange(url: string) {
+  cleanupObserver?.();
+  cleanupObserver = null;
+
   const pageType = detectPageType(url);
 
   // Notify about page change immediately
@@ -63,6 +72,21 @@ async function handlePageChange(url: string) {
     type: "PAGE_DATA",
     data: pageData,
   }).catch(() => {});
+
+  // Set up live chat observer for messages pages
+  if (pageType === "messages") {
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    cleanupObserver = observeNewMessages((updatedChat) => {
+      updatedChat.meetings = scrapeMeetings();
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        chrome.runtime.sendMessage({
+          type: "PAGE_DATA",
+          data: { type: "messages", url, timestamp: Date.now(), data: updatedChat },
+        }).catch(() => {});
+      }, 500);
+    });
+  }
 }
 
 // Initial scrape

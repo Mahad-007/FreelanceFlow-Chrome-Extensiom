@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
+import { STORAGE_KEYS, SCORE_CACHE_TTL } from "../../shared/constants";
 import type { JobScore, JobSearchData, ScrapedJob } from "../../shared/types";
 
 export default function JobHunter() {
@@ -16,11 +17,32 @@ export default function JobHunter() {
   const jobData = pageData?.type === "job-search" ? (pageData.data as JobSearchData) : null;
   const jobs = jobData?.jobs || [];
 
-  // Auto-score on page load if enabled
+  // Load cached scores then auto-score if needed
   useEffect(() => {
-    if (jobs.length > 0 && profile && settings.autoScore && Object.keys(scores).length === 0) {
-      handleScore();
-    }
+    if (jobs.length === 0) return;
+
+    let cancelled = false;
+    chrome.storage.local.get(STORAGE_KEYS.CACHED_SCORES).then((result) => {
+      if (cancelled) return;
+      const cache = result[STORAGE_KEYS.CACHED_SCORES] || {};
+      const now = Date.now();
+      const validScores: Record<string, JobScore> = {};
+      for (const j of jobs) {
+        const cached = cache[j.id];
+        if (cached && now - cached.timestamp < SCORE_CACHE_TTL) {
+          validScores[j.id] = { id: j.id, score: cached.score, reason: cached.reason };
+        }
+      }
+      if (Object.keys(validScores).length > 0) {
+        setScores(validScores);
+      }
+      // Auto-score if enabled and not all jobs have cached scores
+      if (profile && settings.autoScore && !jobs.every((j) => validScores[j.id])) {
+        handleScore();
+      }
+    });
+
+    return () => { cancelled = true; };
   }, [jobs.length, profile?.name]);
 
   const handleScore = async () => {
@@ -50,8 +72,8 @@ export default function JobHunter() {
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-4">🎯</div>
-        <h3 className="text-lg font-bold text-gray-300 mb-2">Job Hunter</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="text-lg font-bold text-skin-secondary mb-2">Job Hunter</h3>
+        <p className="text-sm text-skin-muted">
           Set up your profile in Settings first to enable job scoring.
         </p>
       </div>
@@ -62,11 +84,11 @@ export default function JobHunter() {
     return (
       <div className="text-center py-12">
         <div className="text-4xl mb-4">🎯</div>
-        <h3 className="text-lg font-bold text-gray-300 mb-2">Job Hunter</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="text-lg font-bold text-skin-secondary mb-2">Job Hunter</h3>
+        <p className="text-sm text-skin-muted">
           Navigate to Upwork job search to see and score jobs.
         </p>
-        <p className="text-xs text-gray-600 mt-2">
+        <p className="text-xs text-skin-faint mt-2">
           Visit: upwork.com/nx/search/jobs
         </p>
       </div>
@@ -77,7 +99,7 @@ export default function JobHunter() {
     <div className="space-y-4">
       {/* Controls */}
       <div className="flex items-center justify-between">
-        <span className="text-sm text-gray-400">{jobs.length} jobs found</span>
+        <span className="text-sm text-skin-tertiary">{jobs.length} jobs found</span>
         <div className="flex gap-2">
           <button
             onClick={() => setSortByScore(!sortByScore)}
@@ -96,8 +118,8 @@ export default function JobHunter() {
       </div>
 
       {error && (
-        <div className="neo-card border-red-600 bg-red-900/20">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="neo-card border-skin-error bg-status-error">
+          <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
 
@@ -113,11 +135,11 @@ export default function JobHunter() {
                     href={job.link}
                     target="_blank"
                     rel="noopener"
-                    className="font-medium text-sm text-brand-300 hover:text-brand-200 line-clamp-2"
+                    className="font-medium text-sm text-skin-soft hover:text-skin-accent line-clamp-2"
                   >
                     {job.title}
                   </a>
-                  <div className="flex flex-wrap gap-2 mt-1 text-xs text-gray-500">
+                  <div className="flex flex-wrap gap-2 mt-1 text-xs text-skin-muted">
                     {job.budget && <span>💰 {job.budget}</span>}
                     {job.jobType && <span>📋 {job.jobType}</span>}
                     {job.experienceLevel && <span>📈 {job.experienceLevel}</span>}
@@ -131,12 +153,12 @@ export default function JobHunter() {
                 )}
               </div>
 
-              <p className="text-xs text-gray-500 mt-2 line-clamp-2">{job.description}</p>
+              <p className="text-xs text-skin-muted mt-2 line-clamp-2">{job.description}</p>
 
               {job.skills.length > 0 && (
                 <div className="flex flex-wrap gap-1 mt-2">
                   {job.skills.slice(0, 6).map((skill) => (
-                    <span key={skill} className="text-[10px] px-1.5 py-0.5 bg-gray-800 rounded text-gray-400">
+                    <span key={skill} className="text-[10px] px-1.5 py-0.5 bg-elevated rounded text-skin-tertiary">
                       {skill}
                     </span>
                   ))}
@@ -144,12 +166,12 @@ export default function JobHunter() {
               )}
 
               {score?.reason && (
-                <p className="text-xs text-gray-500 mt-2 italic">
+                <p className="text-xs text-skin-muted mt-2 italic">
                   💡 {score.reason}
                 </p>
               )}
 
-              <div className="flex gap-2 mt-2 text-xs text-gray-500">
+              <div className="flex gap-2 mt-2 text-xs text-skin-muted">
                 {job.clientCountry && <span>🌍 {job.clientCountry}</span>}
                 {job.clientRating && <span>⭐ {job.clientRating}</span>}
                 {job.proposals && <span>📨 {job.proposals}</span>}

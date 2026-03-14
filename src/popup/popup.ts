@@ -2,7 +2,7 @@ const dot = document.getElementById("dot")!;
 const statusText = document.getElementById("statusText")!;
 const openBtn = document.getElementById("openPanel")!;
 
-// Check if API key is configured
+// Check if API key is configured and apply theme
 chrome.storage.local.get("settings").then((result) => {
   const settings = result.settings || {};
   if (settings.openrouterApiKey) {
@@ -11,6 +11,12 @@ chrome.storage.local.get("settings").then((result) => {
   } else {
     dot.className = "dot dot-red";
     statusText.textContent = "Setup needed — no API key";
+  }
+  // Apply theme (default to dark)
+  if (settings.theme && settings.theme !== "dark") {
+    document.documentElement.classList.remove("dark");
+  } else {
+    document.documentElement.classList.add("dark");
   }
 });
 

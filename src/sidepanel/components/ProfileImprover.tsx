@@ -40,7 +40,7 @@ export default function ProfileImprover() {
   if (!profile) {
     return (
       <div className="text-center py-8">
-        <p className="text-sm text-gray-500">Set up your profile in Settings first.</p>
+        <p className="text-sm text-skin-muted">Set up your profile in Settings first.</p>
       </div>
     );
   }
@@ -49,8 +49,8 @@ export default function ProfileImprover() {
     return (
       <div className="text-center py-8">
         <div className="text-4xl mb-4">✨</div>
-        <h3 className="text-lg font-bold text-gray-300 mb-2">Profile Improver</h3>
-        <p className="text-sm text-gray-500">
+        <h3 className="text-lg font-bold text-skin-secondary mb-2">Profile Improver</h3>
+        <p className="text-sm text-skin-muted">
           Navigate to a job posting to get profile improvement suggestions.
         </p>
       </div>
@@ -60,8 +60,8 @@ export default function ProfileImprover() {
   return (
     <div className="space-y-4">
       <div className="neo-card">
-        <h3 className="font-bold text-sm text-brand-400">Improve Profile for:</h3>
-        <p className="text-sm text-gray-400 mt-1 line-clamp-2">{job.title}</p>
+        <h3 className="font-bold text-sm text-skin-accent">Improve Profile for:</h3>
+        <p className="text-sm text-skin-tertiary mt-1 line-clamp-2">{job.title}</p>
       </div>
 
       {!improvements && (
@@ -75,33 +75,33 @@ export default function ProfileImprover() {
       )}
 
       {error && (
-        <div className="neo-card border-red-600 bg-red-900/20">
-          <p className="text-sm text-red-400">{error}</p>
+        <div className="neo-card border-skin-error bg-status-error">
+          <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
 
       {improvements && (
         <div className="space-y-3">
           {/* Overall Tip */}
-          <div className="neo-card border-brand-600 bg-brand-900/20">
-            <p className="text-sm text-brand-300">💡 {improvements.overallTip}</p>
+          <div className="neo-card border-skin-brand bg-brand-subtle">
+            <p className="text-sm text-skin-soft">💡 {improvements.overallTip}</p>
           </div>
 
           {/* Title Suggestion */}
           {improvements.titleSuggestion && (
             <div className="neo-card">
-              <h4 className="font-medium text-gray-300 text-sm mb-1">📝 Title Suggestion</h4>
-              <p className="text-sm text-gray-400">{improvements.titleSuggestion}</p>
+              <h4 className="font-medium text-skin-secondary text-sm mb-1">📝 Title Suggestion</h4>
+              <p className="text-sm text-skin-tertiary">{improvements.titleSuggestion}</p>
             </div>
           )}
 
           {/* Keywords to Add */}
           {improvements.keywordsToAdd.length > 0 && (
             <div className="neo-card">
-              <h4 className="font-medium text-gray-300 text-sm mb-2">🔑 Keywords to Add</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">🔑 Keywords to Add</h4>
               <div className="flex flex-wrap gap-1">
                 {improvements.keywordsToAdd.map((kw) => (
-                  <span key={kw} className="neo-badge bg-brand-900/30 border-brand-600 text-brand-300">
+                  <span key={kw} className="neo-badge bg-brand-subtle border-skin-brand text-skin-soft">
                     + {kw}
                   </span>
                 ))}
@@ -112,10 +112,10 @@ export default function ProfileImprover() {
           {/* Skills to Add */}
           {improvements.skillsToAdd.length > 0 && (
             <div className="neo-card">
-              <h4 className="font-medium text-gray-300 text-sm mb-2">🔧 Skills to Add</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">🔧 Skills to Add</h4>
               <div className="flex flex-wrap gap-1">
                 {improvements.skillsToAdd.map((skill) => (
-                  <span key={skill} className="neo-badge bg-green-900/30 border-green-600 text-green-300">
+                  <span key={skill} className="neo-badge bg-status-success border-skin-success text-skin-success">
                     + {skill}
                   </span>
                 ))}
@@ -126,19 +126,19 @@ export default function ProfileImprover() {
           {/* Bio Edits */}
           {improvements.bioEdits && (
             <div className="neo-card">
-              <h4 className="font-medium text-gray-300 text-sm mb-1">📄 Bio Improvements</h4>
-              <p className="text-xs text-gray-400 whitespace-pre-wrap">{improvements.bioEdits}</p>
+              <h4 className="font-medium text-skin-secondary text-sm mb-1">📄 Bio Improvements</h4>
+              <p className="text-xs text-skin-tertiary whitespace-pre-wrap">{improvements.bioEdits}</p>
             </div>
           )}
 
           {/* Portfolio Tips */}
           {improvements.portfolioTips.length > 0 && (
             <div className="neo-card">
-              <h4 className="font-medium text-gray-300 text-sm mb-2">🖼 Portfolio Tips</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">🖼 Portfolio Tips</h4>
               <ul className="space-y-1">
                 {improvements.portfolioTips.map((tip, i) => (
-                  <li key={i} className="text-xs text-gray-400 flex gap-2">
-                    <span className="text-brand-400">→</span>
+                  <li key={i} className="text-xs text-skin-tertiary flex gap-2">
+                    <span className="text-skin-accent">→</span>
                     <span>{tip}</span>
                   </li>
                 ))}

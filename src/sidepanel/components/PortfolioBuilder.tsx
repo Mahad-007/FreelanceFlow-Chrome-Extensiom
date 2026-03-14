@@ -85,15 +85,15 @@ export default function PortfolioBuilder() {
 
   return (
     <div className="space-y-4">
-      <h3 className="font-bold text-brand-400 text-sm">Portfolio Builder</h3>
-      <p className="text-xs text-gray-500">
+      <h3 className="font-bold text-skin-accent text-sm">Portfolio Builder</h3>
+      <p className="text-xs text-skin-muted">
         Enter your GitHub and/or portfolio website to generate AI-powered profile suggestions.
       </p>
 
       {/* URL Inputs */}
       <div className="space-y-3">
         <div>
-          <label className="block text-xs font-medium text-gray-400 mb-1">GitHub Profile URL</label>
+          <label className="block text-xs font-medium text-skin-tertiary mb-1">GitHub Profile URL</label>
           <input
             type="url"
             value={githubUrl}
@@ -103,7 +103,7 @@ export default function PortfolioBuilder() {
           />
         </div>
         <div>
-          <label className="block text-xs font-medium text-gray-400 mb-1">Portfolio Website URL</label>
+          <label className="block text-xs font-medium text-skin-tertiary mb-1">Portfolio Website URL</label>
           <input
             type="url"
             value={portfolioUrl}
@@ -112,7 +112,7 @@ export default function PortfolioBuilder() {
             className="neo-input text-sm"
           />
         </div>
-        <p className="text-[10px] text-gray-600">At least one URL is required.</p>
+        <p className="text-[10px] text-skin-faint">At least one URL is required.</p>
 
         <button
           onClick={handleFetchAndAnalyze}
@@ -129,7 +129,7 @@ export default function PortfolioBuilder() {
         </button>
 
         {portfolioData && (
-          <p className="text-[10px] text-gray-600 text-center">
+          <p className="text-[10px] text-skin-faint text-center">
             Last fetched: {new Date(portfolioData.fetchedAt).toLocaleString()}
           </p>
         )}
@@ -137,13 +137,13 @@ export default function PortfolioBuilder() {
 
       {/* Errors */}
       {errorFetch && (
-        <div className="neo-card border-red-600 bg-red-900/20">
-          <p className="text-sm text-red-400">{errorFetch}</p>
+        <div className="neo-card border-skin-error bg-status-error">
+          <p className="text-sm text-skin-error">{errorFetch}</p>
         </div>
       )}
       {errorAnalyze && (
-        <div className="neo-card border-red-600 bg-red-900/20">
-          <p className="text-sm text-red-400">{errorAnalyze}</p>
+        <div className="neo-card border-skin-error bg-status-error">
+          <p className="text-sm text-skin-error">{errorAnalyze}</p>
         </div>
       )}
 
@@ -154,14 +154,14 @@ export default function PortfolioBuilder() {
             onClick={() => setShowData(!showData)}
             className="flex items-center justify-between w-full text-left"
           >
-            <h4 className="font-medium text-gray-300 text-sm">Fetched Data</h4>
-            <span className="text-gray-500 text-xs">{showData ? "Hide" : "Show"}</span>
+            <h4 className="font-medium text-skin-secondary text-sm">Fetched Data</h4>
+            <span className="text-skin-muted text-xs">{showData ? "Hide" : "Show"}</span>
           </button>
           {showData && (
-            <div className="mt-3 space-y-2 text-xs text-gray-400">
+            <div className="mt-3 space-y-2 text-xs text-skin-tertiary">
               {portfolioData.github && (
                 <div>
-                  <p className="text-gray-300 font-medium">
+                  <p className="text-skin-secondary font-medium">
                     GitHub: {portfolioData.github.name || portfolioData.github.username}
                   </p>
                   {portfolioData.github.bio && <p className="italic">{portfolioData.github.bio}</p>}
@@ -172,7 +172,7 @@ export default function PortfolioBuilder() {
                     {[...new Set(portfolioData.github.repos.map((r) => r.language).filter(Boolean))]
                       .slice(0, 8)
                       .map((lang) => (
-                        <span key={lang} className="px-1.5 py-0.5 bg-gray-800 rounded text-[10px]">
+                        <span key={lang} className="px-1.5 py-0.5 bg-elevated rounded text-[10px]">
                           {lang}
                         </span>
                       ))}
@@ -181,7 +181,7 @@ export default function PortfolioBuilder() {
               )}
               {portfolioData.website && (
                 <div>
-                  <p className="text-gray-300 font-medium">Website: {portfolioData.website.title || portfolioData.website.url}</p>
+                  <p className="text-skin-secondary font-medium">Website: {portfolioData.website.title || portfolioData.website.url}</p>
                   <p className="line-clamp-3">{portfolioData.website.extractedText.slice(0, 200)}...</p>
                 </div>
               )}
@@ -193,18 +193,18 @@ export default function PortfolioBuilder() {
       {/* AI Suggestions */}
       {portfolioSuggestions && (
         <div className="space-y-3">
-          <h4 className="font-bold text-gray-200 text-sm">AI Suggestions</h4>
+          <h4 className="font-bold text-skin-primary text-sm">AI Suggestions</h4>
 
           {/* Suggested Titles */}
           <div className="neo-card">
-            <h4 className="font-medium text-gray-300 text-sm mb-2">Suggested Titles</h4>
+            <h4 className="font-medium text-skin-secondary text-sm mb-2">Suggested Titles</h4>
             <div className="space-y-2">
               {portfolioSuggestions.suggestedTitles.map((title, i) => (
                 <div key={i} className="flex items-center justify-between gap-2">
-                  <p className="text-sm text-gray-400 flex-1">{title}</p>
+                  <p className="text-sm text-skin-tertiary flex-1">{title}</p>
                   <button
                     onClick={() => handleCopy(`title-${i}`, title)}
-                    className="text-xs text-brand-400 hover:text-brand-300 whitespace-nowrap"
+                    className="text-xs text-skin-accent hover:text-skin-soft whitespace-nowrap"
                   >
                     {copied[`title-${i}`] ? "Copied!" : "Copy"}
                   </button>
@@ -216,15 +216,15 @@ export default function PortfolioBuilder() {
           {/* Suggested Bio */}
           <div className="neo-card">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-gray-300 text-sm">Suggested Bio</h4>
+              <h4 className="font-medium text-skin-secondary text-sm">Suggested Bio</h4>
               <button
                 onClick={() => handleCopy("bio", portfolioSuggestions.suggestedBio)}
-                className="text-xs text-brand-400 hover:text-brand-300"
+                className="text-xs text-skin-accent hover:text-skin-soft"
               >
                 {copied.bio ? "Copied!" : "Copy"}
               </button>
             </div>
-            <p className="text-xs text-gray-400 whitespace-pre-wrap leading-relaxed">
+            <p className="text-xs text-skin-tertiary whitespace-pre-wrap leading-relaxed">
               {portfolioSuggestions.suggestedBio}
             </p>
           </div>
@@ -232,7 +232,7 @@ export default function PortfolioBuilder() {
           {/* Suggested Skills */}
           <div className="neo-card">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-gray-300 text-sm">Suggested Skills</h4>
+              <h4 className="font-medium text-skin-secondary text-sm">Suggested Skills</h4>
               <button
                 onClick={() =>
                   handleCopy(
@@ -240,7 +240,7 @@ export default function PortfolioBuilder() {
                     portfolioSuggestions.suggestedSkills.map((s) => s.name).join(", ")
                   )
                 }
-                className="text-xs text-brand-400 hover:text-brand-300"
+                className="text-xs text-skin-accent hover:text-skin-soft"
               >
                 {copied.skills ? "Copied!" : "Copy All"}
               </button>
@@ -249,10 +249,10 @@ export default function PortfolioBuilder() {
               {portfolioSuggestions.suggestedSkills.map((skill, i) => (
                 <div key={i} className="flex items-center justify-between text-xs">
                   <div className="flex items-center gap-2">
-                    <span className="text-gray-300">{skill.name}</span>
-                    <span className="text-[10px] text-gray-600">{getLevelLabel(skill.level)}</span>
+                    <span className="text-skin-secondary">{skill.name}</span>
+                    <span className="text-[10px] text-skin-faint">{getLevelLabel(skill.level)}</span>
                   </div>
-                  <span className="text-[10px] text-gray-600 italic">{skill.source}</span>
+                  <span className="text-[10px] text-skin-faint italic">{skill.source}</span>
                 </div>
               ))}
             </div>
@@ -260,9 +260,9 @@ export default function PortfolioBuilder() {
 
           {/* Rate Recommendation */}
           <div className="neo-card">
-            <h4 className="font-medium text-gray-300 text-sm mb-2">Rate Recommendation</h4>
+            <h4 className="font-medium text-skin-secondary text-sm mb-2">Rate Recommendation</h4>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-brand-400 font-bold">
+              <span className="text-skin-accent font-bold">
                 ${portfolioSuggestions.rateRecommendation.min} - ${portfolioSuggestions.rateRecommendation.max}/hr
               </span>
               <button
@@ -272,26 +272,26 @@ export default function PortfolioBuilder() {
                     `$${portfolioSuggestions.rateRecommendation.min} - $${portfolioSuggestions.rateRecommendation.max}/hr`
                   )
                 }
-                className="text-xs text-brand-400 hover:text-brand-300"
+                className="text-xs text-skin-accent hover:text-skin-soft"
               >
                 {copied.rate ? "Copied!" : "Copy"}
               </button>
             </div>
-            <p className="text-xs text-gray-500">{portfolioSuggestions.rateRecommendation.reasoning}</p>
+            <p className="text-xs text-skin-muted">{portfolioSuggestions.rateRecommendation.reasoning}</p>
           </div>
 
           {/* Portfolio Highlights */}
           {portfolioSuggestions.portfolioHighlights.length > 0 && (
             <div className="neo-card">
-              <h4 className="font-medium text-gray-300 text-sm mb-2">Portfolio Highlights</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">Portfolio Highlights</h4>
               <div className="space-y-3">
                 {portfolioSuggestions.portfolioHighlights.map((project, i) => (
-                  <div key={i} className="border-l-2 border-gray-700 pl-3">
-                    <p className="text-sm text-gray-300 font-medium">{project.projectName}</p>
-                    <p className="text-xs text-gray-400 mt-1">{project.description}</p>
+                  <div key={i} className="border-l-2 border-skin pl-3">
+                    <p className="text-sm text-skin-secondary font-medium">{project.projectName}</p>
+                    <p className="text-xs text-skin-tertiary mt-1">{project.description}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {project.relevantSkills.map((skill) => (
-                        <span key={skill} className="text-[10px] px-1.5 py-0.5 bg-gray-800 rounded text-gray-400">
+                        <span key={skill} className="text-[10px] px-1.5 py-0.5 bg-elevated rounded text-skin-tertiary">
                           {skill}
                         </span>
                       ))}
@@ -305,7 +305,7 @@ export default function PortfolioBuilder() {
           {/* Completeness Assessment */}
           <div className="neo-card">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-gray-300 text-sm">Completeness Assessment</h4>
+              <h4 className="font-medium text-skin-secondary text-sm">Completeness Assessment</h4>
               <span className={`neo-badge text-xs ${getScoreColor(portfolioSuggestions.completenessAssessment.score)}`}>
                 {portfolioSuggestions.completenessAssessment.score}/100
               </span>
@@ -313,11 +313,11 @@ export default function PortfolioBuilder() {
 
             {portfolioSuggestions.completenessAssessment.strengths.length > 0 && (
               <div className="mb-2">
-                <p className="text-[10px] font-medium text-green-400 mb-1">Strengths</p>
+                <p className="text-[10px] font-medium text-skin-success mb-1">Strengths</p>
                 <ul className="space-y-0.5">
                   {portfolioSuggestions.completenessAssessment.strengths.map((s, i) => (
-                    <li key={i} className="text-xs text-gray-400 flex gap-1.5">
-                      <span className="text-green-400">+</span> {s}
+                    <li key={i} className="text-xs text-skin-tertiary flex gap-1.5">
+                      <span className="text-skin-success">+</span> {s}
                     </li>
                   ))}
                 </ul>
@@ -326,11 +326,11 @@ export default function PortfolioBuilder() {
 
             {portfolioSuggestions.completenessAssessment.gaps.length > 0 && (
               <div className="mb-2">
-                <p className="text-[10px] font-medium text-yellow-400 mb-1">Gaps</p>
+                <p className="text-[10px] font-medium text-skin-warning mb-1">Gaps</p>
                 <ul className="space-y-0.5">
                   {portfolioSuggestions.completenessAssessment.gaps.map((g, i) => (
-                    <li key={i} className="text-xs text-gray-400 flex gap-1.5">
-                      <span className="text-yellow-400">-</span> {g}
+                    <li key={i} className="text-xs text-skin-tertiary flex gap-1.5">
+                      <span className="text-skin-warning">-</span> {g}
                     </li>
                   ))}
                 </ul>
@@ -339,11 +339,11 @@ export default function PortfolioBuilder() {
 
             {portfolioSuggestions.completenessAssessment.recommendations.length > 0 && (
               <div>
-                <p className="text-[10px] font-medium text-brand-400 mb-1">Recommendations</p>
+                <p className="text-[10px] font-medium text-skin-accent mb-1">Recommendations</p>
                 <ul className="space-y-0.5">
                   {portfolioSuggestions.completenessAssessment.recommendations.map((r, i) => (
-                    <li key={i} className="text-xs text-gray-400 flex gap-1.5">
-                      <span className="text-brand-400">-&gt;</span> {r}
+                    <li key={i} className="text-xs text-skin-tertiary flex gap-1.5">
+                      <span className="text-skin-accent">-&gt;</span> {r}
                     </li>
                   ))}
                 </ul>
@@ -351,7 +351,7 @@ export default function PortfolioBuilder() {
             )}
           </div>
 
-          <p className="text-[10px] text-gray-600 text-center">
+          <p className="text-[10px] text-skin-faint text-center">
             Generated: {new Date(portfolioSuggestions.generatedAt).toLocaleString()}
           </p>
         </div>
