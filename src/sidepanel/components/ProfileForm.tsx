@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import type { UserProfile } from "../../shared/types";
 
 interface Props {
@@ -33,6 +33,23 @@ export default function ProfileForm({ initialProfile, onSave }: Props) {
 
   const [validationError, setValidationError] = useState("");
   const [saved, setSaved] = useState(false);
+
+  const completeness = useMemo(() => {
+    const fields = [
+      { name: "Name", filled: name.trim().length > 0, weight: 15 },
+      { name: "Title", filled: title.trim().length > 0, weight: 15 },
+      { name: "Bio", filled: bio.trim().length > 30, weight: 15 },
+      { name: "Skills (3+)", filled: skills.length >= 3, weight: 15 },
+      { name: "Hourly Rate", filled: hourlyRateMin > 0 && hourlyRateMax > 0, weight: 10 },
+      { name: "Experience", filled: experience.length > 0, weight: 5 },
+      { name: "Categories", filled: categories.length > 0, weight: 10 },
+      { name: "Portfolio Links", filled: portfolioLinks.length > 0, weight: 10 },
+      { name: "Bio (100+ chars)", filled: bio.trim().length >= 100, weight: 5 },
+    ];
+    const score = fields.filter((f) => f.filled).reduce((sum, f) => sum + f.weight, 0);
+    const missing = fields.filter((f) => !f.filled).map((f) => f.name);
+    return { score, missing };
+  }, [name, title, bio, skills, hourlyRateMin, hourlyRateMax, experience, categories, portfolioLinks]);
 
   useEffect(() => {
     if (initialProfile) {
@@ -118,6 +135,31 @@ export default function ProfileForm({ initialProfile, onSave }: Props) {
       <p className="text-xs text-skin-muted">
         This info powers job scoring, proposals, and all AI features.
       </p>
+
+      {/* Profile Completeness */}
+      <div className="neo-card">
+        <div className="flex items-center justify-between mb-1">
+          <span className="text-xs font-medium text-skin-secondary">Profile Completeness</span>
+          <span className={`text-xs font-bold ${
+            completeness.score >= 80 ? "text-skin-success" : completeness.score >= 50 ? "text-skin-warning" : "text-skin-error"
+          }`}>
+            {completeness.score}%
+          </span>
+        </div>
+        <div className="bg-elevated rounded-lg overflow-hidden h-2">
+          <div
+            className={`h-full transition-all duration-300 ${
+              completeness.score >= 80 ? "bg-green-500" : completeness.score >= 50 ? "bg-yellow-500" : "bg-red-500"
+            }`}
+            style={{ width: `${completeness.score}%` }}
+          />
+        </div>
+        {completeness.missing.length > 0 && (
+          <p className="text-[10px] text-skin-faint mt-1">
+            Missing: {completeness.missing.join(", ")}
+          </p>
+        )}
+      </div>
 
       {/* Name */}
       <div>

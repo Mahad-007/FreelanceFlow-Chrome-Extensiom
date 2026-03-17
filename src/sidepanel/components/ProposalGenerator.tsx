@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
 import { STORAGE_KEYS } from "../../shared/constants";
-import type { JobDetailData, ScrapedJob, JobSearchData, FetchedPortfolioData, PortfolioSuggestions, SavedProposal } from "../../shared/types";
+import type { JobDetailData, ScrapedJob, JobSearchData, GeneratedProposal, SavedProposal } from "../../shared/types";
 
 export default function ProposalGenerator() {
   const pageData = useUIStore((s) => s.pageData);
@@ -12,9 +12,10 @@ export default function ProposalGenerator() {
   const portfolioData = useUIStore((s) => s.portfolioData);
   const portfolioSuggestions = useUIStore((s) => s.portfolioSuggestions);
   const { sendMessage } = useAI();
-  const [proposal, setProposal] = useState("");
-  const [copied, setCopied] = useState(false);
+  const [proposal, setProposal] = useState<GeneratedProposal | null>(null);
+  const [editingCoverLetter, setEditingCoverLetter] = useState("");
   const [editing, setEditing] = useState(false);
+  const [copied, setCopied] = useState<Record<string, boolean>>({});
   const [history, setHistory] = useState<SavedProposal[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyCopied, setHistoryCopied] = useState<string | null>(null);
@@ -33,6 +34,12 @@ export default function ProposalGenerator() {
     return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
 
+  const handleCopy = async (field: string, text: string) => {
+    await navigator.clipboard.writeText(text);
+    setCopied((prev) => ({ ...prev, [field]: true }));
+    setTimeout(() => setCopied((prev) => ({ ...prev, [field]: false })), 2000);
+  };
+
   const handleHistoryCopy = async (text: string, id: string) => {
     await navigator.clipboard.writeText(text);
     setHistoryCopied(id);
@@ -40,7 +47,20 @@ export default function ProposalGenerator() {
   };
 
   const handleLoadProposal = (item: SavedProposal) => {
-    setProposal(item.text);
+    if (item.structured) {
+      setProposal(item.structured);
+      setEditingCoverLetter(item.structured.coverLetter);
+    } else {
+      // Backward compat: old proposals only have text
+      setProposal({
+        coverLetter: item.text,
+        screeningAnswers: [],
+        bidSuggestion: { amount: 0, type: "hourly", reasoning: "" },
+        paymentTerms: "",
+        attachmentRecommendations: [],
+      });
+      setEditingCoverLetter(item.text);
+    }
     setEditing(false);
     setShowHistory(false);
   };
@@ -70,20 +90,15 @@ export default function ProposalGenerator() {
         .join("\n\n");
     }
 
-    const result = await sendMessage<string>(
+    const result = await sendMessage<GeneratedProposal>(
       { type: "AI_GENERATE_PROPOSAL", job, profile, portfolioContext },
       "generate-proposal"
     );
     if (result) {
       setProposal(result);
+      setEditingCoverLetter(result.coverLetter);
       setEditing(false);
     }
-  };
-
-  const handleCopy = async () => {
-    await navigator.clipboard.writeText(proposal);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
   };
 
   if (!profile) {
@@ -140,40 +155,111 @@ export default function ProposalGenerator() {
         </div>
       )}
 
-      {/* Proposal */}
+      {/* Structured Proposal */}
       {proposal && (
         <div className="space-y-3">
+          {/* Cover Letter */}
           <div className="neo-card">
             <div className="flex items-center justify-between mb-2">
-              <h4 className="font-medium text-skin-secondary text-sm">Generated Proposal</h4>
+              <h4 className="font-medium text-skin-secondary text-sm">Cover Letter</h4>
               <div className="flex gap-2">
                 <button
                   onClick={() => setEditing(!editing)}
                   className="text-xs text-skin-tertiary hover:text-skin-primary"
                 >
-                  {editing ? "Preview" : "✏️ Edit"}
+                  {editing ? "Preview" : "Edit"}
                 </button>
                 <button
-                  onClick={handleCopy}
+                  onClick={() => handleCopy("coverLetter", editing ? editingCoverLetter : proposal.coverLetter)}
                   className="text-xs text-skin-accent hover:text-skin-soft"
                 >
-                  {copied ? "✓ Copied!" : "📋 Copy"}
+                  {copied.coverLetter ? "Copied!" : "Copy"}
                 </button>
               </div>
             </div>
             {editing ? (
               <textarea
-                value={proposal}
-                onChange={(e) => setProposal(e.target.value)}
-                className="neo-input min-h-[300px] text-sm font-mono"
-                rows={15}
+                value={editingCoverLetter}
+                onChange={(e) => setEditingCoverLetter(e.target.value)}
+                className="neo-input min-h-[250px] text-sm font-mono"
+                rows={12}
               />
             ) : (
               <div className="text-sm text-skin-secondary whitespace-pre-wrap leading-relaxed">
-                {proposal}
+                {proposal.coverLetter}
               </div>
             )}
           </div>
+
+          {/* Screening Answers */}
+          {proposal.screeningAnswers.length > 0 && (
+            <div className="neo-card">
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">Screening Answers</h4>
+              <div className="space-y-3">
+                {proposal.screeningAnswers.map((qa, i) => (
+                  <div key={i} className="border-l-2 border-skin pl-3">
+                    <p className="text-xs text-skin-muted font-medium">{qa.question}</p>
+                    <p className="text-sm text-skin-tertiary mt-1">{qa.answer}</p>
+                    <button
+                      onClick={() => handleCopy(`answer-${i}`, qa.answer)}
+                      className="text-[10px] text-skin-accent hover:text-skin-soft mt-1"
+                    >
+                      {copied[`answer-${i}`] ? "Copied!" : "Copy answer"}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Bid Suggestion */}
+          {proposal.bidSuggestion.amount > 0 && (
+            <div className="neo-card">
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">Bid Suggestion</h4>
+              <div className="flex items-center justify-between mb-1">
+                <span className="text-skin-accent font-bold">
+                  ${proposal.bidSuggestion.amount}{proposal.bidSuggestion.type === "hourly" ? "/hr" : " (fixed)"}
+                </span>
+                <button
+                  onClick={() => handleCopy("bid", `$${proposal.bidSuggestion.amount}`)}
+                  className="text-xs text-skin-accent hover:text-skin-soft"
+                >
+                  {copied.bid ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <p className="text-xs text-skin-muted">{proposal.bidSuggestion.reasoning}</p>
+            </div>
+          )}
+
+          {/* Payment Terms */}
+          {proposal.paymentTerms && (
+            <div className="neo-card">
+              <div className="flex items-center justify-between mb-2">
+                <h4 className="font-medium text-skin-secondary text-sm">Payment Terms</h4>
+                <button
+                  onClick={() => handleCopy("terms", proposal.paymentTerms)}
+                  className="text-xs text-skin-accent hover:text-skin-soft"
+                >
+                  {copied.terms ? "Copied!" : "Copy"}
+                </button>
+              </div>
+              <p className="text-xs text-skin-tertiary">{proposal.paymentTerms}</p>
+            </div>
+          )}
+
+          {/* Attachment Recommendations */}
+          {proposal.attachmentRecommendations.length > 0 && (
+            <div className="neo-card">
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">Attachment Recommendations</h4>
+              <ul className="space-y-1">
+                {proposal.attachmentRecommendations.map((rec, i) => (
+                  <li key={i} className="text-xs text-skin-tertiary flex gap-1.5">
+                    <span className="text-skin-accent">-&gt;</span> {rec}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
 
           <div className="flex gap-2">
             <button
@@ -181,10 +267,13 @@ export default function ProposalGenerator() {
               disabled={loading}
               className="neo-btn-secondary flex-1 text-sm"
             >
-              {loading ? "Regenerating..." : "🔄 Regenerate"}
+              {loading ? "Regenerating..." : "Regenerate"}
             </button>
-            <button onClick={handleCopy} className="neo-btn-primary flex-1 text-sm">
-              {copied ? "✓ Copied!" : "📋 Copy to Clipboard"}
+            <button
+              onClick={() => handleCopy("coverLetter", editing ? editingCoverLetter : proposal.coverLetter)}
+              className="neo-btn-primary flex-1 text-sm"
+            >
+              {copied.coverLetter ? "Copied!" : "Copy Cover Letter"}
             </button>
           </div>
         </div>

@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
 import { STORAGE_KEYS, SCORE_CACHE_TTL } from "../../shared/constants";
-import type { JobScore, JobSearchData, ScrapedJob } from "../../shared/types";
+import type { JobScore, JobSearchData, ScrapedJob, SearchRecommendations } from "../../shared/types";
 
 export default function JobHunter() {
   const pageData = useUIStore((s) => s.pageData);
@@ -10,9 +10,13 @@ export default function JobHunter() {
   const loading = useUIStore((s) => s.loading["score-jobs"]);
   const error = useUIStore((s) => s.errors["score-jobs"]);
   const settings = useUIStore((s) => s.settings);
+  const portfolioData = useUIStore((s) => s.portfolioData);
   const { sendMessage } = useAI();
   const [scores, setScores] = useState<Record<string, JobScore>>({});
   const [sortByScore, setSortByScore] = useState(true);
+  const [recommendations, setRecommendations] = useState<SearchRecommendations | null>(null);
+  const loadingRecs = useUIStore((s) => s.loading["search-recommendations"]);
+  const errorRecs = useUIStore((s) => s.errors["search-recommendations"]);
 
   const jobData = pageData?.type === "job-search" ? (pageData.data as JobSearchData) : null;
   const jobs = jobData?.jobs || [];
@@ -48,7 +52,7 @@ export default function JobHunter() {
   const handleScore = async () => {
     if (!profile || jobs.length === 0) return;
     const result = await sendMessage<JobScore[]>(
-      { type: "AI_SCORE_JOBS", jobs, profile },
+      { type: "AI_SCORE_JOBS", jobs, profile, portfolioData: portfolioData || undefined },
       "score-jobs"
     );
     if (result) {
@@ -56,6 +60,21 @@ export default function JobHunter() {
       result.forEach((s) => { scoreMap[s.id] = s; });
       setScores(scoreMap);
     }
+  };
+
+  const handleGetRecommendations = async () => {
+    if (!profile) return;
+    const result = await sendMessage<SearchRecommendations>(
+      { type: "AI_SEARCH_RECOMMENDATIONS", profile, portfolioData: portfolioData || undefined },
+      "search-recommendations"
+    );
+    if (result) setRecommendations(result);
+  };
+
+  const getCompetitionColor = (level: string) => {
+    if (level === "low") return "text-skin-success";
+    if (level === "medium") return "text-skin-warning";
+    return "text-skin-error";
   };
 
   const sortedJobs = sortByScore
@@ -82,15 +101,79 @@ export default function JobHunter() {
 
   if (jobs.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-4">🎯</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Job Hunter</h3>
-        <p className="text-sm text-skin-muted">
-          Navigate to Upwork job search to see and score jobs.
-        </p>
-        <p className="text-xs text-skin-faint mt-2">
-          Visit: upwork.com/nx/search/jobs
-        </p>
+      <div className="space-y-4">
+        <div className="text-center py-8">
+          <div className="text-4xl mb-4">🎯</div>
+          <h3 className="text-lg font-bold text-skin-secondary mb-2">Job Hunter</h3>
+          <p className="text-sm text-skin-muted">
+            Navigate to Upwork job search to see and score jobs.
+          </p>
+          <p className="text-xs text-skin-faint mt-2">
+            Visit: upwork.com/nx/search/jobs
+          </p>
+        </div>
+
+        {/* Search Recommendations */}
+        <button
+          onClick={handleGetRecommendations}
+          disabled={loadingRecs}
+          className="neo-btn-secondary w-full text-sm"
+        >
+          {loadingRecs ? "Generating..." : "🔍 Get Search Recommendations"}
+        </button>
+
+        {errorRecs && (
+          <div className="neo-card border-skin-error bg-status-error">
+            <p className="text-sm text-skin-error">{errorRecs}</p>
+          </div>
+        )}
+
+        {recommendations && (
+          <div className="space-y-3">
+            <h4 className="font-bold text-skin-primary text-sm">Recommended Searches</h4>
+            {recommendations.searchQueries.map((sq, i) => (
+              <div key={i} className="neo-card">
+                <div className="flex items-start justify-between gap-2">
+                  <a
+                    href={`https://www.upwork.com/nx/search/jobs/?q=${encodeURIComponent(sq.query)}`}
+                    target="_blank"
+                    rel="noopener"
+                    className="text-sm font-medium text-skin-soft hover:text-skin-accent"
+                  >
+                    {sq.query}
+                  </a>
+                  <span className={`text-[10px] font-bold whitespace-nowrap ${getCompetitionColor(sq.estimatedCompetition)}`}>
+                    {sq.estimatedCompetition}
+                  </span>
+                </div>
+                <p className="text-[10px] text-skin-faint mt-0.5">{sq.category}</p>
+                <p className="text-xs text-skin-muted mt-1">{sq.reasoning}</p>
+              </div>
+            ))}
+            {recommendations.nicheKeywords.length > 0 && (
+              <div className="neo-card">
+                <h4 className="font-medium text-skin-secondary text-xs mb-1">Niche Keywords</h4>
+                <div className="flex flex-wrap gap-1">
+                  {recommendations.nicheKeywords.map((kw) => (
+                    <span key={kw} className="text-[10px] px-1.5 py-0.5 bg-brand-subtle rounded text-skin-soft">{kw}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {recommendations.searchTips.length > 0 && (
+              <div className="neo-card">
+                <h4 className="font-medium text-skin-secondary text-xs mb-1">Search Tips</h4>
+                <ul className="space-y-0.5">
+                  {recommendations.searchTips.map((tip, i) => (
+                    <li key={i} className="text-xs text-skin-tertiary flex gap-1.5">
+                      <span className="text-skin-accent">-&gt;</span> {tip}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     );
   }
@@ -116,6 +199,15 @@ export default function JobHunter() {
           </button>
         </div>
       </div>
+
+      {/* Search Recommendations Button */}
+      <button
+        onClick={handleGetRecommendations}
+        disabled={loadingRecs}
+        className="neo-btn-secondary w-full text-xs"
+      >
+        {loadingRecs ? "Generating..." : "🔍 Get Search Recommendations"}
+      </button>
 
       {error && (
         <div className="neo-card border-skin-error bg-status-error">

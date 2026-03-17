@@ -38,11 +38,20 @@ export interface SavedJob {
   connectsRequired?: number;
 }
 
+export interface GeneratedProposal {
+  coverLetter: string;
+  screeningAnswers: { question: string; answer: string }[];
+  bidSuggestion: { amount: number; type: "hourly" | "fixed"; reasoning: string };
+  paymentTerms: string;
+  attachmentRecommendations: string[];
+}
+
 export interface SavedProposal {
   id: string;
   jobId: string;
   jobTitle: string;
   text: string;
+  structured?: GeneratedProposal;
   createdAt: string;
   status: "draft" | "sent" | "viewed" | "replied";
   score?: number;
@@ -206,5 +215,18 @@ export interface PortfolioSuggestions {
   rateRecommendation: { min: number; max: number; reasoning: string };
   portfolioHighlights: { projectName: string; description: string; relevantSkills: string[] }[];
   completenessAssessment: { score: number; strengths: string[]; gaps: string[]; recommendations: string[] };
+  testimonialGuidance?: { context: string; sampleRequest: string; tips: string[] }[];
+  certificationRecommendations?: { name: string; provider: string; relevance: string; priority: "high" | "medium" | "low" }[];
+  employmentSuggestions?: { title: string; description: string; skills: string[] }[];
+  educationSuggestions?: { suggestion: string; type: "formal" | "course" | "bootcamp" | "self-taught" }[];
+  projectCatalog?: { projectName: string; clientType: string; outcome: string; suggestedDescription: string }[];
+  otherExperiences?: string[];
   generatedAt: string;
+}
+
+export interface SearchRecommendations {
+  searchQueries: { query: string; category: string; reasoning: string; estimatedCompetition: "low" | "medium" | "high" }[];
+  nicheKeywords: string[];
+  avoidKeywords: string[];
+  searchTips: string[];
 }

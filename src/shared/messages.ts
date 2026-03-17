@@ -13,6 +13,7 @@ import type {
   PortfolioSources,
   FetchedPortfolioData,
   PortfolioSuggestions,
+  GeneratedProposal,
 } from "./types";
 
 // Content script -> Service worker / Side panel
@@ -22,7 +23,7 @@ export type ContentMessage =
 
 // Side panel -> Service worker
 export type PanelMessage =
-  | { type: "AI_SCORE_JOBS"; jobs: ScrapedJob[]; profile: UserProfile }
+  | { type: "AI_SCORE_JOBS"; jobs: ScrapedJob[]; profile: UserProfile; portfolioData?: FetchedPortfolioData }
   | { type: "AI_GENERATE_PROPOSAL"; job: JobDetailData | ScrapedJob; profile: UserProfile; portfolioContext?: string }
   | { type: "AI_ANALYZE_PROFILE"; profile: ProfileData; userProfile?: UserProfile }
   | { type: "AI_IMPROVE_PROFILE"; job: JobDetailData | ScrapedJob; profile: UserProfile }
@@ -35,8 +36,11 @@ export type PanelMessage =
   | { type: "SAVE_PROFILE"; profile: UserProfile }
   | { type: "SAVE_PORTFOLIO_SOURCES"; sources: PortfolioSources }
   | { type: "FETCH_PORTFOLIO"; sources: PortfolioSources }
+  | { type: "FETCH_GITHUB"; url: string }
+  | { type: "FETCH_WEBSITE"; url: string }
   | { type: "AI_ANALYZE_PORTFOLIO"; data: FetchedPortfolioData; currentProfile?: UserProfile }
-  | { type: "GET_PORTFOLIO_DATA" };
+  | { type: "GET_PORTFOLIO_DATA" }
+  | { type: "AI_SEARCH_RECOMMENDATIONS"; profile: UserProfile; portfolioData?: FetchedPortfolioData };
 
 // Service worker -> Side panel responses
 export type ServiceResponse =
@@ -44,7 +48,7 @@ export type ServiceResponse =
   | { success: false; error: string };
 
 export type JobScoreResponse = { success: true; data: JobScore[] } | { success: false; error: string };
-export type ProposalResponse = { success: true; data: string } | { success: false; error: string };
+export type ProposalResponse = { success: true; data: GeneratedProposal } | { success: false; error: string };
 export type ProfileAnalysisResponse = { success: true; data: ProfileAnalysis } | { success: false; error: string };
 export type ChatReplyResponse = { success: true; data: ChatReply[] } | { success: false; error: string };
 export type MeetingPrepResponse = { success: true; data: MeetingPrep } | { success: false; error: string };

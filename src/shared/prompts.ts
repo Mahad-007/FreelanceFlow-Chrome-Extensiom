@@ -2,10 +2,19 @@ import type { UserProfile, ScrapedJob, JobDetailData, ProfileData, ChatData, Fet
 
 export function buildScoreJobsPrompt(
   jobs: ScrapedJob[],
-  profile: UserProfile
+  profile: UserProfile,
+  portfolioData?: FetchedPortfolioData
 ): string {
   const skillNames = profile.skills.map((s) => s.name);
-  return `You are a freelance job matching expert. Score each job 0-100 based on how well it matches this freelancer profile. Also provide a brief reason for each score.
+
+  const portfolioSection = portfolioData?.github?.repos?.length
+    ? `\nPROJECTS/PORTFOLIO:\n${portfolioData.github.repos
+        .slice(0, 8)
+        .map((r) => `- ${r.name}: ${r.description || "N/A"} [${r.language || "N/A"}]${r.topics.length ? ` (${r.topics.join(", ")})` : ""}`)
+        .join("\n")}`
+    : "";
+
+  return `You are a freelance job matching expert. Score each job 0-100 based on how well it matches this freelancer's profile, portfolio, and competition level. Provide a brief reason for each score.
 
 PROFILE:
 - Name: ${profile.name}
@@ -14,11 +23,19 @@ PROFILE:
 - Hourly Rate: $${profile.hourlyRateMin}-$${profile.hourlyRateMax}
 - Experience: ${profile.experience}
 - Categories: ${profile.categories.join(", ")}
+${portfolioSection}
+
+SCORING FACTORS (use these weights):
+1. Skill match (40%): How well do the freelancer's skills and project experience match the job requirements?
+2. Portfolio relevance (20%): Does the freelancer have demonstrable projects related to this job?
+3. Rate fit (15%): Is the freelancer's rate compatible with the job budget?
+4. Competition level (15%): Jobs with fewer proposals should score higher (less competition = better odds). "Less than 5" proposals = boost score by 5-10 points. "50+" proposals = reduce score by 5-10 points.
+5. Experience level match (10%): Does the required experience level align with the freelancer's level?
 
 JOBS:
-${jobs.map((j, i) => `[${i}] ID: ${j.id}\nTitle: ${j.title}\nDescription: ${j.description.slice(0, 500)}\nSkills: ${j.skills.join(", ")}\nBudget: ${j.budget}`).join("\n\n")}
+${jobs.map((j, i) => `[${i}] ID: ${j.id}\nTitle: ${j.title}\nDescription: ${j.description.slice(0, 500)}\nSkills: ${j.skills.join(", ")}\nBudget: ${j.budget}\nProposals: ${j.proposals || "Unknown"}`).join("\n\n")}
 
-Return ONLY a JSON array of objects with "id", "score", and "reason" fields. Example: [{"id":"abc","score":85,"reason":"Strong skill match in React and TypeScript"}]
+Return ONLY a JSON array of objects with "id", "score", and "reason" fields. Example: [{"id":"abc","score":85,"reason":"Strong skill match in React and TypeScript, low competition (5 proposals)"}]
 Use these IDs: ${jobs.map((j) => j.id).join(", ")}`;
 }
 
@@ -39,6 +56,10 @@ export function buildProposalPrompt(
     .filter(Boolean)
     .join("\n");
 
+  const questions = "questions" in job && (job as JobDetailData).questions?.length
+    ? (job as JobDetailData).questions
+    : [];
+
   const profileContext = [
     `Name: ${profile.name}`,
     profile.title ? `Professional title: ${profile.title}` : null,
@@ -52,45 +73,79 @@ export function buildProposalPrompt(
     .filter(Boolean)
     .join("\n");
 
-  return `You are an expert Upwork freelancer who consistently wins projects by writing compelling, personalized cover letters. Write a proposal for the following job that follows Upwork's best practices.
+  const questionsSection = questions.length > 0
+    ? `\n=== SCREENING QUESTIONS ===\n${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}`
+    : "";
+
+  return `You are ghostwriting a complete Upwork proposal for a real freelancer. Your writing must be indistinguishable from how a skilled, busy developer actually writes. Think casual email to a potential collaborator, NOT a polished application letter.
 
 === JOB POSTING ===
 ${jobContext}
+${questionsSection}
 
 === FREELANCER PROFILE ===
 ${profileContext}
 ${portfolioContext ? `\n=== PORTFOLIO & PROJECTS ===\n${portfolioContext}` : ""}
+
 === COVER LETTER GUIDELINES ===
 
 STRUCTURE (follow this order):
-1. GREETING: Start with a friendly, professional "Hi" or "Hi [name]" if the company/client name is known. Never use "To Whom It May Concern" or "Dear Sir/Madam".
-2. OPENING HOOK (first 1-2 sentences): This is CRITICAL — on Upwork, only the first few sentences appear in the proposal results list. The opening must immediately show you understand the client's specific problem or goal and hook them into reading more. Reference something specific from the job description to prove you read it.
-3. RELEVANT EXPERIENCE: Share a specific, concrete example of past work directly relevant to this job. Quantify results with real numbers where possible (e.g. "increased conversions by 25%", "reduced load time by 40%", "managed a team of 5"). Avoid vague buzzwords like "motivated", "team player", "hard-working" — instead demonstrate these qualities through specific accomplishments. If portfolio/project details are provided in the PORTFOLIO & PROJECTS section above, reference SPECIFIC projects by name that are relevant to this job.
-4. PROPOSED APPROACH: Briefly outline how you would tackle this specific project — mention 2-3 concrete steps, tools, or methods you'd use. Use bullet points for scannability if listing multiple items.
-5. CALL TO ACTION: End with a confident, specific next step. Examples:
-   - "I'd be happy to set up a quick call to discuss your goals and walk through my approach."
-   - "Let me know if you'd like to see a quick paid test — I'm happy to show what I can do."
-   - "Happy to discuss scope, timelines, and next steps — let me know when works for a quick call."
+1. GREETING: Start with "Hi" or "Hey" — casual, not formal.
+2. OPENING HOOK (first 1-2 sentences): CRITICAL — reference something specific from the job description that caught your eye. Show you read it.
+3. RELEVANT EXPERIENCE: Share ONE specific, concrete example. Use real numbers if possible. Reference a SPECIFIC project by name if portfolio data is available.
+4. PROPOSED APPROACH: Briefly outline how you'd tackle this — 2-3 concrete steps or tools.
+5. CALL TO ACTION: Ask a question about the project to show genuine interest.
 6. SIGN-OFF: Close with your name.${profile.portfolioLinks?.length ? " Include portfolio links after your name." : ""}
 
 TONE & STYLE RULES:
-- Write in first person, conversational yet professional tone — sound like a real human, not a template
-- Add personality: show genuine enthusiasm for the specific project, not generic excitement
-- Be specific throughout — reference actual job requirements, tools mentioned, and client goals
-- NEVER use generic filler like "I am a highly motivated professional" or "I have extensive experience"
-- Use action verbs: "led", "built", "designed", "shipped", "optimized", "delivered"
-- Keep it 200-300 words — clients review many proposals, concise wins
-- Make it scannable: use short paragraphs, and bullet points only where they add clarity
-- If the job description mentions specific questions or instructions, address them directly
+- Write like a quick email to someone you'd enjoy working with
+- Use contractions always (I'm, I've, you'll, it's, don't)
+- Short paragraphs. Mix sentence lengths. Some sentences can be fragments.
+- Ask a genuine question about their project
+- Keep it 200-300 words max
+- Use action verbs: "built", "shipped", "set up", "fixed", "redesigned"
 
-WHAT TO AVOID:
-- Do NOT repeat the job description back to the client
-- Do NOT list every skill you have — only highlight what's relevant to THIS job
-- Do NOT sound desperate or overly flattering
-- Do NOT use corporate jargon or buzzwords without substance
-- Do NOT write a resume — this is a cover letter showing fit and enthusiasm
+BANNED PHRASES (never use these or anything similar):
+- "I came across your posting" / "I noticed your job posting"
+- "I am confident that" / "I would love the opportunity"
+- "I am the ideal candidate" / "This aligns perfectly with"
+- "I am well-versed in" / "I bring a wealth of"
+- "I am eager to" / "Rest assured" / "I am excited about"
+- "I look forward to the opportunity" / "Don't hesitate to reach out"
+- "comprehensive solution" / "seamless experience"
+- "robust and scalable" / "leverage my expertise"
+- "deliver high-quality results" / "exceed expectations"
+- "unique blend of" / "proven track record"
+- Any sentence starting with "As a [adjective] [profession]"
+- Any sentence starting with "With X years of experience"
 
-Return ONLY the proposal text, no markdown formatting, no labels, no extra commentary.`;
+WHAT GOOD HUMAN WRITING LOOKS LIKE:
+- "Hey! I read through your project — the part about [specific thing] stood out."
+- "I built something similar last year for [client type]. Here's what I did: ..."
+- "Quick question before I dive in: are you looking for X or Y?"
+
+Return a JSON object with this exact structure:
+{
+  "coverLetter": "The full cover letter text following all guidelines above",
+  "screeningAnswers": [
+    { "question": "The original question text", "answer": "A thoughtful, specific answer based on the freelancer's experience" }
+  ],
+  "bidSuggestion": {
+    "amount": 50,
+    "type": "hourly or fixed",
+    "reasoning": "Brief explanation of why this bid amount is appropriate"
+  },
+  "paymentTerms": "Suggested payment terms or milestone structure appropriate for this job",
+  "attachmentRecommendations": ["What portfolio pieces, code samples, or documents to attach and why"]
+}
+
+${questions.length > 0 ? `ANSWER THESE SCREENING QUESTIONS in screeningAnswers:\n${questions.map((q, i) => `${i + 1}. ${q}`).join("\n")}` : "If no screening questions are provided, return an empty screeningAnswers array."}
+
+For bidSuggestion: base the amount on the job budget, freelancer's rate ($${profile.hourlyRateMin}-$${profile.hourlyRateMax}/hr), and the job type (${job.budget || "not specified"}).
+For paymentTerms: suggest milestones for fixed-price or weekly billing for hourly jobs.
+For attachmentRecommendations: suggest 1-3 relevant items based on the job requirements and freelancer's portfolio.
+
+Return ONLY the JSON, no extra text.`;
 }
 
 export function buildProfileAnalysisPrompt(
@@ -292,7 +347,7 @@ Based on the projects, technologies, and experience demonstrated above, generate
 Return a JSON object with this exact structure:
 {
   "suggestedTitles": ["Title Option 1", "Title Option 2", "Title Option 3"],
-  "suggestedBio": "A professional Upwork overview/bio (150-250 words). Write in first person. Highlight specific projects and achievements from the portfolio. Include concrete technologies and results. Make it compelling for clients.",
+  "suggestedBio": "Write a 150-250 word Upwork bio in first person. RULES: Casual-professional tone, like explaining your work to a friend who might hire you. Use contractions (I'm, I've, don't). Short sentences. Mix lengths naturally. Start with what you actually do day-to-day, not a grand intro. Mention specific projects by name from the portfolio. Weave technologies into sentences naturally, don't dump a list. Include one concrete number or result if available. End with what kind of work you're looking for, stated simply. NEVER USE these words or phrases: 'passionate', 'dedicated', 'innovative', 'cutting-edge', 'leverage', 'showcasing', 'driven', 'committed', 'proven track record', 'extensive experience', 'thrive on', 'excited to', 'I bring expertise in', 'I am a highly skilled', 'with a proven track record'. If it sounds like LinkedIn or ChatGPT wrote it, rewrite it.",
   "suggestedSkills": [
     { "name": "Skill Name", "level": 4, "source": "project or repo name where this was demonstrated" }
   ],
@@ -313,17 +368,89 @@ Return a JSON object with this exact structure:
     "strengths": ["What the profile data shows well"],
     "gaps": ["What's missing or weak"],
     "recommendations": ["Specific actionable steps to improve"]
-  }
+  },
+  "testimonialGuidance": [
+    {
+      "context": "After which project or work should they request a testimonial",
+      "sampleRequest": "A short message template they can send to a past client or collaborator asking for a testimonial",
+      "tips": ["Tip for getting a good testimonial"]
+    }
+  ],
+  "certificationRecommendations": [
+    { "name": "Certification Name", "provider": "Provider", "relevance": "Why this cert matters", "priority": "high" }
+  ],
+  "employmentSuggestions": [
+    { "title": "Role title to list", "description": "How to describe this role based on their project work", "skills": ["skill1"] }
+  ],
+  "educationSuggestions": [
+    { "suggestion": "Course or credential to pursue", "type": "course" }
+  ],
+  "projectCatalog": [
+    { "projectName": "Name", "clientType": "Startup/Enterprise/Personal", "outcome": "What was achieved", "suggestedDescription": "Client-facing description for Upwork project catalog" }
+  ],
+  "otherExperiences": ["Freeform suggestion for Other Experiences section"]
 }
 
 Guidelines:
 - Suggest 3 distinct professional titles targeting different niches the developer could serve
-- Skills should include both technical skills from repos AND soft/professional skills inferred from project complexity
+- Generate exactly 20 skills. ALL must be technical skills (programming languages, frameworks, libraries, tools, platforms, databases, APIs, protocols, etc.). Do NOT include soft skills or personal traits like "communication", "teamwork", "project management", "problem-solving", "leadership", "time management"
 - Level scale: 1=Beginner, 2=Familiar, 3=Proficient, 4=Advanced, 5=Expert — base on evidence from repos
 - Rate recommendation should reflect the developer's apparent experience level and technology stack market value (in USD)
 - Portfolio highlights: pick the 3-5 most impressive/marketable projects
 - Completeness assessment: evaluate how well the available data supports a strong Upwork profile
+- testimonialGuidance: Generate 2-3 suggestions for requesting testimonials based on visible projects. Include a ready-to-send message template for each.
+- certificationRecommendations: Suggest 3-5 certifications relevant to the technologies found in the portfolio (e.g., AWS, Google Cloud, Meta, etc.)
+- employmentSuggestions: Based on project complexity, suggest 2-3 employment history entries they could add to their profile
+- educationSuggestions: Recommend 2-3 relevant courses, bootcamps, or credentials. Type must be one of: "formal", "course", "bootcamp", "self-taught"
+- projectCatalog: Reframe the top 3-5 projects as client-facing Upwork project catalog entries with outcomes
+- otherExperiences: 2-3 suggestions for the "Other Experiences" section (open source contributions, technical writing, speaking, community involvement, etc.)
+- Keep each section concise — quality over quantity
 ${currentProfile ? "- Since a current profile exists, tailor suggestions to complement and improve it rather than replace everything" : ""}
+
+Return ONLY the JSON, no extra text.`;
+}
+
+export function buildSearchRecommendationsPrompt(
+  profile: UserProfile,
+  portfolioData?: FetchedPortfolioData
+): string {
+  const skillNames = profile.skills.map((s) => s.name);
+  const repoInfo = portfolioData?.github?.repos
+    ?.slice(0, 10)
+    .map((r) => `- ${r.name}: ${r.description || "N/A"} [${r.language || "N/A"}]${r.topics.length ? ` (${r.topics.join(", ")})` : ""}`)
+    .join("\n") || "";
+
+  return `You are an Upwork job search strategist. Based on this freelancer's profile and projects, suggest optimized search queries they should use to find the best-matching jobs on Upwork.
+
+PROFILE:
+- Title: ${profile.title}
+- Skills: ${skillNames.join(", ")}
+- Experience: ${profile.experience}
+- Categories: ${profile.categories.join(", ")}
+- Rate: $${profile.hourlyRateMin}-$${profile.hourlyRateMax}/hr
+${repoInfo ? `\nPROJECTS:\n${repoInfo}` : ""}
+
+Generate search recommendations in this JSON format:
+{
+  "searchQueries": [
+    {
+      "query": "the exact search string to type into Upwork search",
+      "category": "which Upwork category this targets",
+      "reasoning": "why this query matches the freelancer's strengths",
+      "estimatedCompetition": "low or medium or high"
+    }
+  ],
+  "nicheKeywords": ["keyword1", "keyword2"],
+  "avoidKeywords": ["keyword1"],
+  "searchTips": ["tip1", "tip2"]
+}
+
+Generate 8-10 diverse search queries covering:
+- Direct skill matches (e.g., the freelancer's main technologies)
+- Niche combinations that reduce competition (e.g., combining two specific skills)
+- Industry-specific queries based on project experience
+- Queries targeting the freelancer's rate sweet spot
+- Emerging or trending variations of their skills
 
 Return ONLY the JSON, no extra text.`;
 }

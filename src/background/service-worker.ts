@@ -8,6 +8,7 @@ import {
   buildChatRepliesPrompt,
   buildMeetingPrepPrompt,
   buildPortfolioAnalysisPrompt,
+  buildSearchRecommendationsPrompt,
 } from "../shared/prompts";
 import { STORAGE_KEYS, DEFAULT_SETTINGS } from "../shared/constants";
 import type { PanelMessage, ContentMessage } from "../shared/messages";
@@ -69,7 +70,7 @@ async function handlePanelMessage(message: PanelMessage): Promise<unknown> {
     }
 
     case "AI_SCORE_JOBS": {
-      const prompt = buildScoreJobsPrompt(message.jobs, message.profile);
+      const prompt = buildScoreJobsPrompt(message.jobs, message.profile, message.portfolioData);
       const text = await chatCompletion(prompt, settings.openrouterApiKey, settings.aiModel);
       const jsonMatch = text.match(/\[[\s\S]*\]/);
       if (!jsonMatch) return message.jobs.map((j) => ({ id: j.id, score: 50, reason: "Could not parse" }));
@@ -91,6 +92,9 @@ async function handlePanelMessage(message: PanelMessage): Promise<unknown> {
     case "AI_GENERATE_PROPOSAL": {
       const prompt = buildProposalPrompt(message.job, message.profile, message.portfolioContext);
       const text = await chatCompletion(prompt, settings.openrouterApiKey, settings.aiModel);
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("Failed to parse proposal response");
+      const structured = JSON.parse(jsonMatch[0]);
       // Save proposal
       const proposalsResult = await chrome.storage.local.get(STORAGE_KEYS.PROPOSALS);
       const proposals = proposalsResult[STORAGE_KEYS.PROPOSALS] || [];
@@ -98,13 +102,14 @@ async function handlePanelMessage(message: PanelMessage): Promise<unknown> {
         id: Date.now().toString(36),
         jobId: message.job.id || "",
         jobTitle: message.job.title,
-        text,
+        text: structured.coverLetter || "",
+        structured,
         createdAt: new Date().toISOString(),
         status: "draft",
       });
       // Keep only last 50
       await chrome.storage.local.set({ [STORAGE_KEYS.PROPOSALS]: proposals.slice(0, 50) });
-      return text;
+      return structured;
     }
 
     case "AI_ANALYZE_PROFILE": {
@@ -161,6 +166,14 @@ async function handlePanelMessage(message: PanelMessage): Promise<unknown> {
       return result;
     }
 
+    case "FETCH_GITHUB": {
+      return await fetchGitHubProfile(message.url);
+    }
+
+    case "FETCH_WEBSITE": {
+      return await fetchPortfolioWebsite(message.url);
+    }
+
     case "AI_ANALYZE_PORTFOLIO": {
       const prompt = buildPortfolioAnalysisPrompt(message.data, message.currentProfile);
       const text = await chatCompletion(prompt, settings.openrouterApiKey, settings.aiModel);
@@ -185,6 +198,14 @@ async function handlePanelMessage(message: PanelMessage): Promise<unknown> {
         data: stored[STORAGE_KEYS.PORTFOLIO_DATA] || null,
         suggestions: stored[STORAGE_KEYS.PORTFOLIO_SUGGESTIONS] || null,
       };
+    }
+
+    case "AI_SEARCH_RECOMMENDATIONS": {
+      const prompt = buildSearchRecommendationsPrompt(message.profile, message.portfolioData);
+      const text = await chatCompletion(prompt, settings.openrouterApiKey, settings.aiModel);
+      const jsonMatch = text.match(/\{[\s\S]*\}/);
+      if (!jsonMatch) throw new Error("Failed to parse search recommendations");
+      return JSON.parse(jsonMatch[0]);
     }
 
     default:
