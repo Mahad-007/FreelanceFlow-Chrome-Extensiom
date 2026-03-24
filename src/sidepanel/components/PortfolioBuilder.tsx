@@ -87,6 +87,25 @@ export default function PortfolioBuilder() {
 
     // Step: Fetch Website
     if (hasWebsite) {
+      // Request permission for arbitrary URLs (Chrome Web Store compliance)
+      try {
+        const granted = await chrome.permissions.request({
+          origins: ["https://*/*"],
+        });
+        if (!granted) {
+          steps = updateStep(steps, "website", "error");
+          setProgressSteps([...steps]);
+          useUIStore.getState().setError(
+            "fetch-website",
+            "Permission denied. Please allow access to fetch your portfolio website."
+          );
+          setIsRunning(false);
+          return;
+        }
+      } catch {
+        // Permission already granted or not needed — proceed
+      }
+
       steps = updateStep(steps, "website", "active");
       setProgressSteps([...steps]);
       const website = await sendMessage<PortfolioWebsiteData>(

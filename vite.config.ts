@@ -29,6 +29,8 @@ function copyAssetsPlugin() {
           "https://openrouter.ai/*",
           "https://api.github.com/*",
           "https://raw.githubusercontent.com/*",
+        ],
+        optional_host_permissions: [
           "https://*/*",
         ],
         background: {
