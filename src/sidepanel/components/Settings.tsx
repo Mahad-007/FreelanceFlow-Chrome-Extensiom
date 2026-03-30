@@ -19,6 +19,13 @@ export default function Settings({ onClose }: Props) {
   const [autoScore, setAutoScore] = useState(settings.autoScore);
   const [autoSwitch, setAutoSwitch] = useState(settings.autoSwitchTabs);
   const [theme, setTheme] = useState(settings.theme);
+  const handleThemeToggle = async () => {
+    const newTheme: "light" | "dark" = theme === "dark" ? "light" : "dark";
+    setTheme(newTheme);
+    const updated = { ...settings, theme: newTheme };
+    await chrome.runtime.sendMessage({ type: "SAVE_SETTINGS", settings: updated });
+    setSettings(updated);
+  };
   const [testing, setTesting] = useState(false);
   const [testResult, setTestResult] = useState<"success" | "error" | null>(null);
 
@@ -129,7 +136,7 @@ export default function Settings({ onClose }: Props) {
             <p className="text-xs text-skin-muted">{theme === "dark" ? "Dark mode" : "Light mode"}</p>
           </div>
           <button
-            onClick={() => setTheme(theme === "dark" ? "light" : "dark")}
+            onClick={handleThemeToggle}
             className={`w-10 h-6 rounded-full transition-colors ${
               theme === "dark" ? "bg-brand-600" : "bg-[var(--toggle-off)]"
             } relative`}
