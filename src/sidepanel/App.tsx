@@ -60,7 +60,7 @@ export default function App() {
       {/* Header */}
       <div className="flex items-center justify-between px-4 py-3 border-b border-skin-subtle bg-surface">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md flex items-center justify-center" style={{ background: "linear-gradient(135deg, #2dd4a8, #1187f5)" }}>
+          <div className="w-6 h-6 rounded-md bg-brand-500 flex items-center justify-center">
             <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 16 16" fill="currentColor">
               <path d="M3 12.5l4-5.5h3L7 12.5h4.5L13 11l-2-3h-1l2.5-3.5L11 3 6.5 9H4l3.5-5L6 3 2 9h3L3 12.5z" />
             </svg>
@@ -104,7 +104,7 @@ export default function App() {
           >
             {tab.label}
             {activeTab === tab.id && (
-              <span className="absolute bottom-0 left-2 right-2 h-0.5 bg-brand-600 rounded-full" />
+              <span className="absolute bottom-0 left-2 right-2 h-0.5 rounded-full bg-brand-400" />
             )}
           </button>
         ))}

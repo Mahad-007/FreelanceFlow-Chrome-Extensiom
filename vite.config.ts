@@ -16,6 +16,13 @@ function copyAssetsPlugin() {
         );
       }
 
+      // Copy theme init script (must be external for CSP compliance)
+      mkdirSync(resolve(__dirname, "dist/src/sidepanel"), { recursive: true });
+      copyFileSync(
+        resolve(__dirname, "src/sidepanel/theme-init.js"),
+        resolve(__dirname, "dist/src/sidepanel/theme-init.js")
+      );
+
       // Write production manifest
       const manifest = {
         manifest_version: 3,
