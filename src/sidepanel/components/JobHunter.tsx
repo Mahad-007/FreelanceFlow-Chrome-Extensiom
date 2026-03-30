@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
 import { STORAGE_KEYS, SCORE_CACHE_TTL } from "../../shared/constants";
+import { getScoreClass } from "../utils/score";
 import type { JobScore, JobSearchData, ScrapedJob, SearchRecommendations } from "../../shared/types";
+import EmptyState from "./EmptyState";
+import Icon from "./Icon";
 
 export default function JobHunter() {
   const pageData = useUIStore((s) => s.pageData);
@@ -81,37 +84,23 @@ export default function JobHunter() {
     ? [...jobs].sort((a, b) => (scores[b.id]?.score || 0) - (scores[a.id]?.score || 0))
     : jobs;
 
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "score-high";
-    if (score >= 50) return "score-medium";
-    return "score-low";
-  };
-
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-4">🎯</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Job Hunter</h3>
-        <p className="text-sm text-skin-muted">
-          Set up your profile in Settings first to enable job scoring.
-        </p>
-      </div>
+      <EmptyState
+        title="Job Hunter"
+        description="Set up your profile in Settings first to enable job scoring."
+      />
     );
   }
 
   if (jobs.length === 0) {
     return (
       <div className="space-y-4">
-        <div className="text-center py-8">
-          <div className="text-4xl mb-4">🎯</div>
-          <h3 className="text-lg font-bold text-skin-secondary mb-2">Job Hunter</h3>
-          <p className="text-sm text-skin-muted">
-            Navigate to Upwork job search to see and score jobs.
-          </p>
-          <p className="text-xs text-skin-faint mt-2">
-            Visit: upwork.com/nx/search/jobs
-          </p>
-        </div>
+        <EmptyState
+          title="Job Hunter"
+          description="Navigate to Upwork job search to see and score jobs."
+          hint="upwork.com/nx/search/jobs"
+        />
 
         {/* Search Recommendations */}
         <button
@@ -119,11 +108,11 @@ export default function JobHunter() {
           disabled={loadingRecs}
           className="neo-btn-secondary w-full text-sm"
         >
-          {loadingRecs ? "Generating..." : "🔍 Get Search Recommendations"}
+          {loadingRecs ? "Generating..." : "Get Recommendations"}
         </button>
 
         {errorRecs && (
-          <div className="neo-card border-skin-error bg-status-error">
+          <div className="neo-alert-error">
             <p className="text-sm text-skin-error">{errorRecs}</p>
           </div>
         )}
@@ -188,14 +177,14 @@ export default function JobHunter() {
             onClick={() => setSortByScore(!sortByScore)}
             className="neo-btn-secondary text-xs"
           >
-            {sortByScore ? "📊 By Score" : "📅 By Order"}
+            {sortByScore ? "By Score" : "By Order"}
           </button>
           <button
             onClick={handleScore}
             disabled={loading}
             className="neo-btn-primary text-xs"
           >
-            {loading ? "Scoring..." : "🎯 Score All"}
+            {loading ? "Scoring..." : "Score All"}
           </button>
         </div>
       </div>
@@ -206,11 +195,11 @@ export default function JobHunter() {
         disabled={loadingRecs}
         className="neo-btn-secondary w-full text-xs"
       >
-        {loadingRecs ? "Generating..." : "🔍 Get Search Recommendations"}
+        {loadingRecs ? "Generating..." : "Get Recommendations"}
       </button>
 
       {error && (
-        <div className="neo-card border-skin-error bg-status-error">
+        <div className="neo-alert-error">
           <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
@@ -220,7 +209,7 @@ export default function JobHunter() {
         {sortedJobs.map((job) => {
           const score = scores[job.id];
           return (
-            <div key={job.id} className="neo-card">
+            <div key={job.id} className="neo-card-compact">
               <div className="flex items-start justify-between gap-2">
                 <div className="flex-1 min-w-0">
                   <a
@@ -231,15 +220,15 @@ export default function JobHunter() {
                   >
                     {job.title}
                   </a>
-                  <div className="flex flex-wrap gap-2 mt-1 text-xs text-skin-muted">
-                    {job.budget && <span>💰 {job.budget}</span>}
-                    {job.jobType && <span>📋 {job.jobType}</span>}
-                    {job.experienceLevel && <span>📈 {job.experienceLevel}</span>}
-                    {job.postedTime && <span>🕐 {job.postedTime}</span>}
+                  <div className="meta-row mt-1 text-xs text-skin-muted">
+                    {job.budget && <span>{job.budget}</span>}
+                    {job.jobType && <span>{job.jobType}</span>}
+                    {job.experienceLevel && <span>{job.experienceLevel}</span>}
+                    {job.postedTime && <span>{job.postedTime}</span>}
                   </div>
                 </div>
                 {score && (
-                  <span className={`neo-badge text-sm flex-shrink-0 ${getScoreColor(score.score)}`}>
+                  <span className={`neo-badge text-sm flex-shrink-0 ${getScoreClass(score.score)}`}>
                     {score.score}
                   </span>
                 )}
@@ -258,15 +247,15 @@ export default function JobHunter() {
               )}
 
               {score?.reason && (
-                <p className="text-xs text-skin-muted mt-2 italic">
-                  💡 {score.reason}
+                <p className="text-xs text-skin-accent mt-2 italic">
+                  {score.reason}
                 </p>
               )}
 
-              <div className="flex gap-2 mt-2 text-xs text-skin-muted">
-                {job.clientCountry && <span>🌍 {job.clientCountry}</span>}
-                {job.clientRating && <span>⭐ {job.clientRating}</span>}
-                {job.proposals && <span>📨 {job.proposals}</span>}
+              <div className="meta-row mt-2 text-xs text-skin-muted">
+                {job.clientCountry && <span>{job.clientCountry}</span>}
+                {job.clientRating && <span>{job.clientRating}</span>}
+                {job.proposals && <span>{job.proposals}</span>}
               </div>
             </div>
           );

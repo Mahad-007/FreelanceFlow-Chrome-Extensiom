@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
 import type { MeetingPrep as MeetingPrepType, ChatData, MeetingData } from "../../shared/types";
+import Icon from "./Icon";
+import EmptyState from "./EmptyState";
 
 export default function MeetingPrep() {
   const pageData = useUIStore((s) => s.pageData);
@@ -38,11 +40,11 @@ export default function MeetingPrep() {
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-4">📅</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Meeting Prep</h3>
-        <p className="text-sm text-skin-muted">Set up your profile in Settings first.</p>
-      </div>
+      <EmptyState
+        title="Meeting Prep"
+        description="Set up your profile in Settings first."
+        hint="Go to Settings to get started"
+      />
     );
   }
 
@@ -50,7 +52,7 @@ export default function MeetingPrep() {
     <div className="space-y-4">
       {/* Context */}
       <div className="neo-card">
-        <h3 className="font-bold text-sm text-skin-accent mb-2">📅 Meeting Preparation</h3>
+        <h3 className="font-bold text-sm text-skin-accent mb-2">Meeting Preparation</h3>
         {chatData ? (
           <div>
             <p className="text-sm text-skin-tertiary">
@@ -81,7 +83,7 @@ export default function MeetingPrep() {
             <h4 className="text-xs font-medium text-skin-tertiary mb-2">Detected Meetings</h4>
             <div className="space-y-2">
               {meetings.map((m, i) => (
-                <div key={i} className="text-xs bg-elevated rounded p-2">
+                <div key={i} className="neo-card-compact text-xs bg-elevated rounded p-2">
                   <span className="text-skin-soft">{m.title}</span>
                   {m.scheduledTime && (
                     <span className="text-skin-muted ml-2">at {m.scheduledTime}</span>
@@ -100,12 +102,12 @@ export default function MeetingPrep() {
           disabled={loading}
           className="neo-btn-primary w-full"
         >
-          {loading ? "Preparing..." : "📅 Prepare for Meeting"}
+          {loading ? "Preparing..." : "Prepare for Meeting"}
         </button>
       )}
 
       {error && (
-        <div className="neo-card border-skin-error bg-status-error">
+        <div className="neo-alert-error">
           <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
@@ -115,7 +117,7 @@ export default function MeetingPrep() {
         <div className="space-y-3">
           {/* Talking Points */}
           <div className="neo-card">
-            <h4 className="font-medium text-skin-secondary text-sm mb-2">🎯 Talking Points</h4>
+            <h4 className="font-medium text-skin-secondary text-sm mb-2">Talking Points</h4>
             <ul className="space-y-2">
               {prep.talkingPoints.map((point, i) => (
                 <li key={i} className="flex gap-2 text-sm text-skin-tertiary">
@@ -128,7 +130,7 @@ export default function MeetingPrep() {
 
           {/* Likely Questions */}
           <div className="neo-card">
-            <h4 className="font-medium text-skin-secondary text-sm mb-2">❓ Likely Client Questions</h4>
+            <h4 className="font-medium text-skin-secondary text-sm mb-2">Questions to Expect</h4>
             <ul className="space-y-2">
               {prep.likelyQuestions.map((q, i) => (
                 <li key={i} className="text-sm text-skin-tertiary flex gap-2">
@@ -141,7 +143,7 @@ export default function MeetingPrep() {
 
           {/* Preparation Tips */}
           <div className="neo-card">
-            <h4 className="font-medium text-skin-secondary text-sm mb-2">💡 Preparation Tips</h4>
+            <h4 className="font-medium text-skin-secondary text-sm mb-2">Preparation Tips</h4>
             <ul className="space-y-1">
               {prep.preparationTips.map((tip, i) => (
                 <li key={i} className="text-xs text-skin-tertiary flex gap-2">
@@ -157,7 +159,7 @@ export default function MeetingPrep() {
             disabled={loading}
             className="neo-btn-secondary w-full text-sm"
           >
-            {loading ? "Regenerating..." : "🔄 Regenerate"}
+            {loading ? "Regenerating..." : "Regenerate"}
           </button>
         </div>
       )}

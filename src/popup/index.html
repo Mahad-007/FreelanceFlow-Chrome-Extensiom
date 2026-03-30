@@ -6,16 +6,18 @@
   <title>FreelanceFlow</title>
   <style>
     :root {
-      --popup-bg: #f6f7fb;
-      --popup-text: #1a1f36;
-      --popup-muted: #5a617a;
+      --popup-bg: #f8f8fc;
+      --popup-text: #171b2e;
+      --popup-muted: #555c74;
       --popup-btn-shadow: 3px 3px 0px rgba(26,31,54,0.1);
+      --popup-border: #eaedf3;
     }
     .dark {
-      --popup-bg: #030712;
-      --popup-text: #f3f4f6;
-      --popup-muted: #9ca3af;
+      --popup-bg: #0a0e1a;
+      --popup-text: #f2f3f6;
+      --popup-muted: #99a0ac;
       --popup-btn-shadow: 3px 3px 0px rgba(0,0,0,0.3);
+      --popup-border: #1f2937;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -24,8 +26,12 @@
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
       background: var(--popup-bg);
       color: var(--popup-text);
+      -webkit-font-smoothing: antialiased;
     }
-    h1 { font-size: 18px; font-weight: 700; color: #29a5ff; margin-bottom: 8px; }
+    .header { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; }
+    .logo { width: 24px; height: 24px; background: #1187f5; border-radius: 6px; display: flex; align-items: center; justify-content: center; }
+    .logo span { color: white; font-size: 10px; font-weight: 800; line-height: 1; }
+    h1 { font-size: 14px; font-weight: 800; letter-spacing: -0.01em; }
     p { font-size: 13px; color: var(--popup-muted); margin-bottom: 12px; }
     .status { display: flex; align-items: center; gap: 6px; margin-bottom: 12px; }
     .dot { width: 8px; height: 8px; border-radius: 50%; }
@@ -39,18 +45,21 @@
       color: white;
       border: 2px solid #0a6fe1;
       border-radius: 8px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
       cursor: pointer;
       box-shadow: var(--popup-btn-shadow);
       transition: all 0.1s;
     }
-    button:hover { background: #29a5ff; }
+    button:hover { background: #29a5ff; border-color: #1187f5; }
     button:active { box-shadow: none; transform: translate(3px, 3px); }
   </style>
 </head>
 <body>
-  <h1>FreelanceFlow</h1>
+  <div class="header">
+    <div class="logo"><span>FF</span></div>
+    <h1>FreelanceFlow</h1>
+  </div>
   <p>AI-powered freelance assistant for Upwork</p>
   <div class="status" id="status">
     <div class="dot dot-red" id="dot"></div>

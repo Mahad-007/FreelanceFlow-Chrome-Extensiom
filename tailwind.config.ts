@@ -56,6 +56,15 @@ const config: Config = {
       boxShadow: {
         neo: "var(--shadow-neo)",
         btn: "var(--shadow-btn)",
+        card: "var(--shadow-card)",
+        "card-hover": "var(--shadow-card-hover)",
+      },
+      letterSpacing: {
+        "tight-sm": "-0.01em",
+        "wide-sm": "0.02em",
+      },
+      fontSize: {
+        "2xs": ["0.625rem", { lineHeight: "0.875rem" }],
       },
     },
   },

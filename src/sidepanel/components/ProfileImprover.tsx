@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
 import type { JobDetailData, ScrapedJob, JobSearchData } from "../../shared/types";
+import EmptyState from "./EmptyState";
 
 interface Improvements {
   titleSuggestion: string | null;
@@ -39,21 +40,19 @@ export default function ProfileImprover() {
 
   if (!profile) {
     return (
-      <div className="text-center py-8">
-        <p className="text-sm text-skin-muted">Set up your profile in Settings first.</p>
-      </div>
+      <EmptyState
+        title="Profile Required"
+        description="Set up your profile in Settings first."
+      />
     );
   }
 
   if (!job) {
     return (
-      <div className="text-center py-8">
-        <div className="text-4xl mb-4">✨</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Profile Improver</h3>
-        <p className="text-sm text-skin-muted">
-          Navigate to a job posting to get profile improvement suggestions.
-        </p>
-      </div>
+      <EmptyState
+        title="Profile Improver"
+        description="Navigate to a job posting to get profile improvement suggestions."
+      />
     );
   }
 
@@ -70,12 +69,12 @@ export default function ProfileImprover() {
           disabled={loading}
           className="neo-btn-primary w-full"
         >
-          {loading ? "Analyzing..." : "✨ Get Improvement Tips"}
+          {loading ? "Analyzing..." : "Get Improvement Tips"}
         </button>
       )}
 
       {error && (
-        <div className="neo-card border-skin-error bg-status-error">
+        <div className="neo-alert-error">
           <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
@@ -83,14 +82,14 @@ export default function ProfileImprover() {
       {improvements && (
         <div className="space-y-3">
           {/* Overall Tip */}
-          <div className="neo-card border-skin-brand bg-brand-subtle">
-            <p className="text-sm text-skin-soft">💡 {improvements.overallTip}</p>
+          <div className="neo-alert-info">
+            <p className="text-sm text-skin-soft">{improvements.overallTip}</p>
           </div>
 
           {/* Title Suggestion */}
           {improvements.titleSuggestion && (
             <div className="neo-card">
-              <h4 className="font-medium text-skin-secondary text-sm mb-1">📝 Title Suggestion</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-1">Title Suggestion</h4>
               <p className="text-sm text-skin-tertiary">{improvements.titleSuggestion}</p>
             </div>
           )}
@@ -98,7 +97,7 @@ export default function ProfileImprover() {
           {/* Keywords to Add */}
           {improvements.keywordsToAdd.length > 0 && (
             <div className="neo-card">
-              <h4 className="font-medium text-skin-secondary text-sm mb-2">🔑 Keywords to Add</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">Keywords</h4>
               <div className="flex flex-wrap gap-1">
                 {improvements.keywordsToAdd.map((kw) => (
                   <span key={kw} className="neo-badge bg-brand-subtle border-skin-brand text-skin-soft">
@@ -112,7 +111,7 @@ export default function ProfileImprover() {
           {/* Skills to Add */}
           {improvements.skillsToAdd.length > 0 && (
             <div className="neo-card">
-              <h4 className="font-medium text-skin-secondary text-sm mb-2">🔧 Skills to Add</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">Skills to Add</h4>
               <div className="flex flex-wrap gap-1">
                 {improvements.skillsToAdd.map((skill) => (
                   <span key={skill} className="neo-badge bg-status-success border-skin-success text-skin-success">
@@ -126,7 +125,7 @@ export default function ProfileImprover() {
           {/* Bio Edits */}
           {improvements.bioEdits && (
             <div className="neo-card">
-              <h4 className="font-medium text-skin-secondary text-sm mb-1">📄 Bio Improvements</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-1">Bio Improvements</h4>
               <p className="text-xs text-skin-tertiary whitespace-pre-wrap">{improvements.bioEdits}</p>
             </div>
           )}
@@ -134,7 +133,7 @@ export default function ProfileImprover() {
           {/* Portfolio Tips */}
           {improvements.portfolioTips.length > 0 && (
             <div className="neo-card">
-              <h4 className="font-medium text-skin-secondary text-sm mb-2">🖼 Portfolio Tips</h4>
+              <h4 className="font-medium text-skin-secondary text-sm mb-2">Portfolio Tips</h4>
               <ul className="space-y-1">
                 {improvements.portfolioTips.map((tip, i) => (
                   <li key={i} className="text-xs text-skin-tertiary flex gap-2">
@@ -151,7 +150,7 @@ export default function ProfileImprover() {
             disabled={loading}
             className="neo-btn-secondary w-full text-sm"
           >
-            {loading ? "Re-analyzing..." : "🔄 Re-analyze"}
+            {loading ? "Re-analyzing..." : "Re-analyze"}
           </button>
         </div>
       )}

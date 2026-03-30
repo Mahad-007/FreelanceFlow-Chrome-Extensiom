@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
 import type { ChatData, ChatReply } from "../../shared/types";
+import Icon from "./Icon";
+import EmptyState from "./EmptyState";
 
 export default function ChatAssistant() {
   const pageData = useUIStore((s) => s.pageData);
@@ -31,31 +33,28 @@ export default function ChatAssistant() {
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-4">💬</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Chat Assistant</h3>
-        <p className="text-sm text-skin-muted">Set up your profile in Settings first.</p>
-      </div>
+      <EmptyState
+        title="Chat Assistant"
+        description="Set up your profile in Settings first."
+        hint="Go to Settings to get started"
+      />
     );
   }
 
   if (!chatData || chatData.messages.length === 0) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-4">💬</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Chat Assistant</h3>
-        <p className="text-sm text-skin-muted">
-          Open an Upwork conversation to get reply suggestions.
-        </p>
-        <p className="text-xs text-skin-faint mt-2">Visit: upwork.com/ab/messages</p>
-      </div>
+      <EmptyState
+        title="Chat Assistant"
+        description="Open an Upwork conversation to get reply suggestions."
+        hint="Visit: upwork.com/ab/messages"
+      />
     );
   }
 
-  const toneLabels: Record<string, { label: string; icon: string; desc: string }> = {
-    brief: { label: "Brief", icon: "⚡", desc: "Short & direct" },
-    detailed: { label: "Detailed", icon: "📋", desc: "Thorough response" },
-    custom: { label: "Friendly", icon: "😊", desc: "Personal & warm" },
+  const toneLabels: Record<string, { label: string; icon: React.ReactNode; desc: string }> = {
+    brief: { label: "Brief", icon: <Icon name="zap" className="w-3.5 h-3.5" />, desc: "Short & direct" },
+    detailed: { label: "Detailed", icon: <Icon name="clipboard" className="w-3.5 h-3.5" />, desc: "Thorough response" },
+    custom: { label: "Friendly", icon: <Icon name="sparkle" className="w-3.5 h-3.5" />, desc: "Personal & warm" },
   };
 
   return (
@@ -72,7 +71,7 @@ export default function ChatAssistant() {
           {chatData.messages.slice(-5).map((msg, i) => (
             <div
               key={i}
-              className={`text-xs p-2 rounded ${
+              className={`neo-card-compact text-xs p-2 rounded ${
                 msg.sender === chatData.contactName
                   ? "bg-elevated text-skin-tertiary"
                   : "bg-brand-subtle text-skin-soft"
@@ -91,11 +90,11 @@ export default function ChatAssistant() {
         disabled={loading}
         className="neo-btn-primary w-full"
       >
-        {loading ? "Generating replies..." : "💬 Suggest Replies"}
+        {loading ? "Generating replies..." : "Suggest Replies"}
       </button>
 
       {error && (
-        <div className="neo-card border-skin-error bg-status-error">
+        <div className="neo-alert-error">
           <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
@@ -117,7 +116,7 @@ export default function ChatAssistant() {
                     onClick={() => handleCopy(reply.text, i)}
                     className="text-xs text-skin-accent hover:text-skin-soft"
                   >
-                    {copiedIdx === i ? "✓ Copied!" : "📋 Copy"}
+                    {copiedIdx === i ? "Copied!" : "Copy"}
                   </button>
                 </div>
                 <p className="text-sm text-skin-tertiary whitespace-pre-wrap">{reply.text}</p>

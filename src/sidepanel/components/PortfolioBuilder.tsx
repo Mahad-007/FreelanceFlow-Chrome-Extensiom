@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
+import { useCopy } from "../hooks/useCopy";
+import { getScoreClass } from "../utils/score";
 import type { FetchedPortfolioData, PortfolioSuggestions, GitHubProfileData, PortfolioWebsiteData } from "../../shared/types";
 
 interface ProgressStep {
@@ -25,7 +27,7 @@ export default function PortfolioBuilder() {
   const [githubUrl, setGithubUrl] = useState(portfolioSources?.githubUrl || "");
   const [portfolioUrl, setPortfolioUrl] = useState(portfolioSources?.portfolioUrl || "");
   const [showData, setShowData] = useState(false);
-  const [copied, setCopied] = useState<Record<string, boolean>>({});
+  const { copied, copy } = useCopy();
   const [progressSteps, setProgressSteps] = useState<ProgressStep[]>([]);
   const [isRunning, setIsRunning] = useState(false);
 
@@ -149,19 +151,7 @@ export default function PortfolioBuilder() {
     setIsRunning(false);
   };
 
-  const handleCopy = async (field: string, text: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopied((prev) => ({ ...prev, [field]: true }));
-    setTimeout(() => setCopied((prev) => ({ ...prev, [field]: false })), 2000);
-  };
-
   const loading = isRunning;
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "score-high";
-    if (score >= 50) return "score-medium";
-    return "score-low";
-  };
 
   const getLevelLabel = (level: number) => {
     const labels = ["", "Beginner", "Familiar", "Proficient", "Advanced", "Expert"];
@@ -244,12 +234,12 @@ export default function PortfolioBuilder() {
 
       {/* Errors */}
       {errorFetch && (
-        <div className="neo-card border-skin-error bg-status-error">
+        <div className="neo-alert-error">
           <p className="text-sm text-skin-error">{errorFetch}</p>
         </div>
       )}
       {errorAnalyze && (
-        <div className="neo-card border-skin-error bg-status-error">
+        <div className="neo-alert-error">
           <p className="text-sm text-skin-error">{errorAnalyze}</p>
         </div>
       )}
@@ -310,7 +300,7 @@ export default function PortfolioBuilder() {
                 <div key={i} className="flex items-center justify-between gap-2">
                   <p className="text-sm text-skin-tertiary flex-1">{title}</p>
                   <button
-                    onClick={() => handleCopy(`title-${i}`, title)}
+                    onClick={() => copy(`title-${i}`, title)}
                     className="text-xs text-skin-accent hover:text-skin-soft whitespace-nowrap"
                   >
                     {copied[`title-${i}`] ? "Copied!" : "Copy"}
@@ -325,7 +315,7 @@ export default function PortfolioBuilder() {
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium text-skin-secondary text-sm">Suggested Bio</h4>
               <button
-                onClick={() => handleCopy("bio", portfolioSuggestions.suggestedBio)}
+                onClick={() => copy("bio", portfolioSuggestions.suggestedBio)}
                 className="text-xs text-skin-accent hover:text-skin-soft"
               >
                 {copied.bio ? "Copied!" : "Copy"}
@@ -342,7 +332,7 @@ export default function PortfolioBuilder() {
               <h4 className="font-medium text-skin-secondary text-sm">Suggested Skills ({portfolioSuggestions.suggestedSkills.length})</h4>
               <button
                 onClick={() =>
-                  handleCopy(
+                  copy(
                     "skills",
                     portfolioSuggestions.suggestedSkills.map((s) => s.name).join(", ")
                   )
@@ -374,7 +364,7 @@ export default function PortfolioBuilder() {
               </span>
               <button
                 onClick={() =>
-                  handleCopy(
+                  copy(
                     "rate",
                     `$${portfolioSuggestions.rateRecommendation.min} - $${portfolioSuggestions.rateRecommendation.max}/hr`
                   )
@@ -393,7 +383,7 @@ export default function PortfolioBuilder() {
               <h4 className="font-medium text-skin-secondary text-sm mb-2">Portfolio Highlights</h4>
               <div className="space-y-3">
                 {portfolioSuggestions.portfolioHighlights.map((project, i) => (
-                  <div key={i} className="border-l-2 border-skin pl-3">
+                  <div key={i} className="border-l border-skin pl-3">
                     <p className="text-sm text-skin-secondary font-medium">{project.projectName}</p>
                     <p className="text-xs text-skin-tertiary mt-1">{project.description}</p>
                     <div className="flex flex-wrap gap-1 mt-1">
@@ -413,7 +403,7 @@ export default function PortfolioBuilder() {
           <div className="neo-card">
             <div className="flex items-center justify-between mb-2">
               <h4 className="font-medium text-skin-secondary text-sm">Completeness Assessment</h4>
-              <span className={`neo-badge text-xs ${getScoreColor(portfolioSuggestions.completenessAssessment.score)}`}>
+              <span className={`neo-badge text-xs ${getScoreClass(portfolioSuggestions.completenessAssessment.score)}`}>
                 {portfolioSuggestions.completenessAssessment.score}/100
               </span>
             </div>
@@ -489,12 +479,12 @@ export default function PortfolioBuilder() {
               <h4 className="font-medium text-skin-secondary text-sm mb-2">Testimonials & Endorsements</h4>
               <div className="space-y-3">
                 {portfolioSuggestions.testimonialGuidance.map((t, i) => (
-                  <div key={i} className="border-l-2 border-skin pl-3">
+                  <div key={i} className="border-l border-skin pl-3">
                     <p className="text-xs text-skin-secondary font-medium">{t.context}</p>
                     <div className="mt-1 bg-elevated rounded p-2">
                       <p className="text-xs text-skin-tertiary italic">"{t.sampleRequest}"</p>
                       <button
-                        onClick={() => handleCopy(`testimonial-${i}`, t.sampleRequest)}
+                        onClick={() => copy(`testimonial-${i}`, t.sampleRequest)}
                         className="text-[10px] text-skin-accent hover:text-skin-soft mt-1"
                       >
                         {copied[`testimonial-${i}`] ? "Copied!" : "Copy message"}
@@ -521,11 +511,11 @@ export default function PortfolioBuilder() {
               <h4 className="font-medium text-skin-secondary text-sm mb-2">Employment History</h4>
               <div className="space-y-2">
                 {portfolioSuggestions.employmentSuggestions.map((emp, i) => (
-                  <div key={i} className="border-l-2 border-skin pl-3">
+                  <div key={i} className="border-l border-skin pl-3">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-skin-secondary font-medium">{emp.title}</p>
                       <button
-                        onClick={() => handleCopy(`emp-${i}`, `${emp.title}\n${emp.description}`)}
+                        onClick={() => copy(`emp-${i}`, `${emp.title}\n${emp.description}`)}
                         className="text-[10px] text-skin-accent hover:text-skin-soft"
                       >
                         {copied[`emp-${i}`] ? "Copied!" : "Copy"}
@@ -568,11 +558,11 @@ export default function PortfolioBuilder() {
               <h4 className="font-medium text-skin-secondary text-sm mb-2">Project Catalog</h4>
               <div className="space-y-3">
                 {portfolioSuggestions.projectCatalog.map((proj, i) => (
-                  <div key={i} className="border-l-2 border-skin pl-3">
+                  <div key={i} className="border-l border-skin pl-3">
                     <div className="flex items-center justify-between">
                       <p className="text-sm text-skin-secondary font-medium">{proj.projectName}</p>
                       <button
-                        onClick={() => handleCopy(`proj-${i}`, proj.suggestedDescription)}
+                        onClick={() => copy(`proj-${i}`, proj.suggestedDescription)}
                         className="text-[10px] text-skin-accent hover:text-skin-soft"
                       >
                         {copied[`proj-${i}`] ? "Copied!" : "Copy"}

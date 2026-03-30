@@ -130,7 +130,7 @@ export default function ProfileForm({ initialProfile, onSave }: Props) {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       <h3 className="text-lg font-bold text-skin-accent">Your Profile</h3>
       <p className="text-xs text-skin-muted">
         This info powers job scoring, proposals, and all AI features.

@@ -2,6 +2,8 @@ import React, { useState } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
 import type { ProfileAnalysis, ProfileData, UserProfile } from "../../shared/types";
+import EmptyState from "./EmptyState";
+import { getScoreClass } from "../utils/score";
 
 export default function ProfileScanner() {
   const pageData = useUIStore((s) => s.pageData);
@@ -61,24 +63,13 @@ export default function ProfileScanner() {
 
   if (!profileData) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-4">👤</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Profile Scanner</h3>
-        <p className="text-sm text-skin-muted">
-          Navigate to an Upwork profile page to scan and analyze it.
-        </p>
-        <p className="text-xs text-skin-faint mt-2">
-          Visit: upwork.com/freelancers/~yourprofile
-        </p>
-      </div>
+      <EmptyState
+        title="Profile Scanner"
+        description="Navigate to an Upwork profile page to scan and analyze it."
+        hint="upwork.com/freelancers/~yourprofile"
+      />
     );
   }
-
-  const getScoreColor = (score: number) => {
-    if (score >= 80) return "score-high";
-    if (score >= 50) return "score-medium";
-    return "score-low";
-  };
 
   return (
     <div className="space-y-4">
@@ -87,9 +78,9 @@ export default function ProfileScanner() {
         <h3 className="font-bold text-skin-accent mb-2">{profileData.name || "Profile"}</h3>
         <p className="text-sm text-skin-tertiary">{profileData.title}</p>
         <div className="flex gap-4 mt-3 text-xs text-skin-muted">
-          {profileData.hourlyRate && <span>💰 {profileData.hourlyRate}</span>}
-          {profileData.jobSuccessScore && <span>⭐ {profileData.jobSuccessScore}</span>}
-          {profileData.totalJobs && <span>💼 {profileData.totalJobs} jobs</span>}
+          {profileData.hourlyRate && <span>{profileData.hourlyRate}</span>}
+          {profileData.jobSuccessScore && <span>{profileData.jobSuccessScore}</span>}
+          {profileData.totalJobs && <span>{profileData.totalJobs} jobs</span>}
         </div>
         <div className="flex flex-wrap gap-1 mt-3">
           {profileData.skills.slice(0, 10).map((skill) => (
@@ -127,12 +118,12 @@ export default function ProfileScanner() {
           disabled={loading}
           className="neo-btn-primary w-full"
         >
-          {loading ? "Analyzing..." : "🔍 Analyze Profile with AI"}
+          {loading ? "Analyzing..." : "Analyze Profile"}
         </button>
       )}
 
       {error && (
-        <div className="neo-card border-skin-error bg-status-error">
+        <div className="neo-alert-error">
           <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
@@ -143,7 +134,7 @@ export default function ProfileScanner() {
           <div className="neo-card">
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-skin-primary">Overall Score</h3>
-              <span className={`neo-badge text-lg ${getScoreColor(analysis.overallScore)}`}>
+              <span className={`neo-badge text-lg ${getScoreClass(analysis.overallScore)}`}>
                 {analysis.overallScore}/100
               </span>
             </div>
@@ -154,7 +145,7 @@ export default function ProfileScanner() {
             <div key={section.name} className="neo-card">
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium text-skin-secondary">{section.name}</h4>
-                <span className={`neo-badge text-xs ${getScoreColor(section.score)}`}>
+                <span className={`neo-badge text-xs ${getScoreClass(section.score)}`}>
                   {section.score}
                 </span>
               </div>
@@ -174,7 +165,7 @@ export default function ProfileScanner() {
             disabled={loading}
             className="neo-btn-secondary w-full text-sm"
           >
-            {loading ? "Re-analyzing..." : "🔄 Re-analyze"}
+            {loading ? "Re-analyzing..." : "Re-analyze"}
           </button>
         </div>
       )}

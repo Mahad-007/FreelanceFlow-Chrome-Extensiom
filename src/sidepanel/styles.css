@@ -4,25 +4,27 @@
 
 @layer base {
   :root {
-    --bg-base: #f6f7fb;
+    --bg-base: #f8f8fc;
     --bg-surface: #ffffff;
     --bg-surface-dim: rgba(255,255,255,0.7);
-    --bg-elevated: #eef0f6;
-    --bg-inset: #e2e5ee;
-    --text-primary: #1a1f36;
-    --text-secondary: #3c4257;
-    --text-tertiary: #5a617a;
+    --bg-elevated: #f0f1f7;
+    --bg-inset: #e4e6ef;
+    --text-primary: #171b2e;
+    --text-secondary: #363b50;
+    --text-tertiary: #555c74;
     --text-muted: #696f8c;
-    --text-faint: #8f95b2;
-    --brand-accent: #0a6fe1;
+    --text-faint: #8e94ae;
+    --brand-accent: #0b6dd9;
     --brand-soft: #1187f5;
-    --bg-brand-subtle: #eef5ff;
-    --border-default: #d8dce8;
-    --border-strong: #c1c6d6;
-    --border-subtle: #e8ebf2;
-    --border-brand: #0a6fe1;
+    --bg-brand-subtle: #edf4fe;
+    --border-default: #dcdfe9;
+    --border-strong: #c4c8d5;
+    --border-subtle: #eaedf3;
+    --border-brand: #0b6dd9;
     --shadow-neo: 4px 4px 0 rgba(17,135,245,0.08);
     --shadow-btn: 3px 3px 0 rgba(26,31,54,0.1);
+    --shadow-card: 0 1px 3px rgba(17,31,54,0.04), 0 1px 2px rgba(17,31,54,0.02);
+    --shadow-card-hover: 0 4px 12px rgba(17,31,54,0.06), 0 1px 3px rgba(17,31,54,0.04);
     --text-success: #16a34a;
     --text-warning: #d97706;
     --text-error: #dc2626;
@@ -32,21 +34,21 @@
     --border-success: #16a34a;
     --border-warning: #d97706;
     --border-error: #dc2626;
-    --toggle-off: #c1c6d6;
+    --toggle-off: #c4c8d5;
   }
 
   .dark {
-    --bg-base: #030712;
-    --bg-surface: #111827;
-    --bg-surface-dim: rgba(17,24,39,0.5);
-    --bg-elevated: #1f2937;
-    --bg-inset: #374151;
-    --text-primary: #f3f4f6;
-    --text-secondary: #d1d5db;
-    --text-tertiary: #9ca3af;
+    --bg-base: #0a0e1a;
+    --bg-surface: #111826;
+    --bg-surface-dim: rgba(17,24,38,0.5);
+    --bg-elevated: #1c2536;
+    --bg-inset: #333d4e;
+    --text-primary: #f2f3f6;
+    --text-secondary: #cdd2da;
+    --text-tertiary: #99a0ac;
     --text-muted: #6b7280;
     --text-faint: #4b5563;
-    --brand-accent: #51c5ff;
+    --brand-accent: #5ec8ff;
     --brand-soft: #89dbff;
     --bg-brand-subtle: rgba(19,75,143,0.2);
     --border-default: #374151;
@@ -55,6 +57,8 @@
     --border-brand: #1187f5;
     --shadow-neo: 4px 4px 0 rgba(41,165,255,0.2);
     --shadow-btn: 3px 3px 0 rgba(0,0,0,0.3);
+    --shadow-card: 0 1px 3px rgba(0,0,0,0.2), 0 1px 2px rgba(0,0,0,0.1);
+    --shadow-card-hover: 0 4px 12px rgba(0,0,0,0.3), 0 1px 3px rgba(0,0,0,0.2);
     --text-success: #4ade80;
     --text-warning: #facc15;
     --text-error: #f87171;
@@ -95,17 +99,21 @@
 
 @layer components {
   .neo-card {
-    @apply bg-surface border-2 border-skin rounded-lg p-4 shadow-neo;
+    @apply bg-surface border border-skin-subtle rounded-xl p-4 shadow-card;
+  }
+
+  .neo-card-compact {
+    @apply bg-surface border border-skin-subtle rounded-xl p-3 shadow-card;
   }
 
   .neo-btn {
-    @apply px-4 py-2 font-bold rounded-lg border-2 border-skin shadow-btn
+    @apply px-4 py-2 font-semibold text-[13px] rounded-lg border-2 border-skin shadow-btn
            active:shadow-none active:translate-x-[3px] active:translate-y-[3px] transition-all duration-100
            focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-1;
   }
 
   .neo-btn-primary {
-    @apply neo-btn bg-brand-600 border-brand-700 text-white hover:bg-brand-500;
+    @apply neo-btn bg-brand-600 border-brand-700 text-white hover:bg-brand-500 hover:border-brand-600;
   }
 
   .neo-btn-secondary {
@@ -113,13 +121,21 @@
   }
 
   .neo-input {
-    @apply w-full px-3 py-2 bg-elevated border-2 border-skin-strong rounded-lg text-skin-primary
-           placeholder:text-skin-muted focus:border-brand-500 focus:outline-none
+    @apply w-full px-3 py-2 bg-elevated border border-skin rounded-lg text-skin-primary text-[13px]
+           placeholder:text-skin-faint focus:border-brand-500 focus:outline-none
            focus-visible:ring-2 focus-visible:ring-brand-500/40 focus-visible:ring-offset-1;
   }
 
   .neo-badge {
-    @apply inline-flex items-center px-2 py-0.5 rounded-md text-xs font-bold border-2;
+    @apply inline-flex items-center px-2 py-0.5 rounded-full text-2xs font-semibold border;
+  }
+
+  .neo-alert-error {
+    @apply rounded-xl border border-skin-error bg-status-error px-4 py-3;
+  }
+
+  .neo-alert-info {
+    @apply rounded-xl border border-skin-brand bg-brand-subtle px-4 py-3;
   }
 
   .score-high {
@@ -138,10 +154,16 @@
   }
 
   .tab-active {
-    @apply border-b-2 border-brand-500 text-skin-accent;
+    @apply text-skin-accent;
   }
 
   .tab-inactive {
-    @apply border-b-2 border-transparent text-skin-muted hover:text-skin-secondary;
+    @apply text-skin-muted hover:text-skin-secondary;
+  }
+
+  .meta-row > span + span::before {
+    content: "\00B7";
+    margin-right: 0.5rem;
+    color: var(--text-faint);
   }
 }

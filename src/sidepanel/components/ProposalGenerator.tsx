@@ -1,8 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useUIStore } from "../store";
 import { useAI } from "../hooks/useAI";
+import { useCopy } from "../hooks/useCopy";
 import { STORAGE_KEYS } from "../../shared/constants";
 import type { JobDetailData, ScrapedJob, JobSearchData, GeneratedProposal, SavedProposal } from "../../shared/types";
+import EmptyState from "./EmptyState";
+import Icon from "./Icon";
 
 export default function ProposalGenerator() {
   const pageData = useUIStore((s) => s.pageData);
@@ -12,10 +15,10 @@ export default function ProposalGenerator() {
   const portfolioData = useUIStore((s) => s.portfolioData);
   const portfolioSuggestions = useUIStore((s) => s.portfolioSuggestions);
   const { sendMessage } = useAI();
+  const { copied, copy } = useCopy();
   const [proposal, setProposal] = useState<GeneratedProposal | null>(null);
   const [editingCoverLetter, setEditingCoverLetter] = useState("");
   const [editing, setEditing] = useState(false);
-  const [copied, setCopied] = useState<Record<string, boolean>>({});
   const [history, setHistory] = useState<SavedProposal[]>([]);
   const [showHistory, setShowHistory] = useState(false);
   const [historyCopied, setHistoryCopied] = useState<string | null>(null);
@@ -33,12 +36,6 @@ export default function ProposalGenerator() {
     chrome.storage.onChanged.addListener(listener);
     return () => chrome.storage.onChanged.removeListener(listener);
   }, []);
-
-  const handleCopy = async (field: string, text: string) => {
-    await navigator.clipboard.writeText(text);
-    setCopied((prev) => ({ ...prev, [field]: true }));
-    setTimeout(() => setCopied((prev) => ({ ...prev, [field]: false })), 2000);
-  };
 
   const handleHistoryCopy = async (text: string, id: string) => {
     await navigator.clipboard.writeText(text);
@@ -103,26 +100,20 @@ export default function ProposalGenerator() {
 
   if (!profile) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-4">📝</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Proposal Generator</h3>
-        <p className="text-sm text-skin-muted">
-          Set up your profile in Settings first to generate proposals.
-        </p>
-      </div>
+      <EmptyState
+        title="Proposal Generator"
+        description="Set up your profile in Settings first to generate proposals."
+      />
     );
   }
 
   if (!job) {
     return (
-      <div className="text-center py-12">
-        <div className="text-4xl mb-4">📝</div>
-        <h3 className="text-lg font-bold text-skin-secondary mb-2">Proposal Generator</h3>
-        <p className="text-sm text-skin-muted">
-          Navigate to an Upwork job posting to generate a proposal.
-        </p>
-        <p className="text-xs text-skin-faint mt-2">Visit: upwork.com/jobs/~jobid</p>
-      </div>
+      <EmptyState
+        title="Proposal Generator"
+        description="Navigate to an Upwork job posting to generate a proposal."
+        hint="upwork.com/jobs/~jobid"
+      />
     );
   }
 
@@ -131,10 +122,10 @@ export default function ProposalGenerator() {
       {/* Job Summary */}
       <div className="neo-card">
         <h3 className="font-bold text-sm text-skin-accent line-clamp-2">{job.title}</h3>
-        <div className="flex flex-wrap gap-2 mt-1 text-xs text-skin-muted">
-          {job.budget && <span>💰 {job.budget}</span>}
-          {job.experienceLevel && <span>📈 {job.experienceLevel}</span>}
-          {job.skills.length > 0 && <span>🔧 {job.skills.slice(0, 3).join(", ")}</span>}
+        <div className="meta-row mt-1 text-xs text-skin-muted">
+          {job.budget && <span>{job.budget}</span>}
+          {job.experienceLevel && <span>{job.experienceLevel}</span>}
+          {job.skills.length > 0 && <span>{job.skills.slice(0, 3).join(", ")}</span>}
         </div>
       </div>
 
@@ -145,12 +136,12 @@ export default function ProposalGenerator() {
           disabled={loading}
           className="neo-btn-primary w-full"
         >
-          {loading ? "Generating..." : "📝 Generate Proposal"}
+          {loading ? "Generating..." : "Generate Proposal"}
         </button>
       )}
 
       {error && (
-        <div className="neo-card border-skin-error bg-status-error">
+        <div className="neo-alert-error">
           <p className="text-sm text-skin-error">{error}</p>
         </div>
       )}
@@ -170,7 +161,7 @@ export default function ProposalGenerator() {
                   {editing ? "Preview" : "Edit"}
                 </button>
                 <button
-                  onClick={() => handleCopy("coverLetter", editing ? editingCoverLetter : proposal.coverLetter)}
+                  onClick={() => copy("coverLetter", editing ? editingCoverLetter : proposal.coverLetter)}
                   className="text-xs text-skin-accent hover:text-skin-soft"
                 >
                   {copied.coverLetter ? "Copied!" : "Copy"}
@@ -201,7 +192,7 @@ export default function ProposalGenerator() {
                     <p className="text-xs text-skin-muted font-medium">{qa.question}</p>
                     <p className="text-sm text-skin-tertiary mt-1">{qa.answer}</p>
                     <button
-                      onClick={() => handleCopy(`answer-${i}`, qa.answer)}
+                      onClick={() => copy(`answer-${i}`, qa.answer)}
                       className="text-[10px] text-skin-accent hover:text-skin-soft mt-1"
                     >
                       {copied[`answer-${i}`] ? "Copied!" : "Copy answer"}
@@ -221,7 +212,7 @@ export default function ProposalGenerator() {
                   ${proposal.bidSuggestion.amount}{proposal.bidSuggestion.type === "hourly" ? "/hr" : " (fixed)"}
                 </span>
                 <button
-                  onClick={() => handleCopy("bid", `$${proposal.bidSuggestion.amount}`)}
+                  onClick={() => copy("bid", `$${proposal.bidSuggestion.amount}`)}
                   className="text-xs text-skin-accent hover:text-skin-soft"
                 >
                   {copied.bid ? "Copied!" : "Copy"}
@@ -237,7 +228,7 @@ export default function ProposalGenerator() {
               <div className="flex items-center justify-between mb-2">
                 <h4 className="font-medium text-skin-secondary text-sm">Payment Terms</h4>
                 <button
-                  onClick={() => handleCopy("terms", proposal.paymentTerms)}
+                  onClick={() => copy("terms", proposal.paymentTerms)}
                   className="text-xs text-skin-accent hover:text-skin-soft"
                 >
                   {copied.terms ? "Copied!" : "Copy"}
@@ -270,7 +261,7 @@ export default function ProposalGenerator() {
               {loading ? "Regenerating..." : "Regenerate"}
             </button>
             <button
-              onClick={() => handleCopy("coverLetter", editing ? editingCoverLetter : proposal.coverLetter)}
+              onClick={() => copy("coverLetter", editing ? editingCoverLetter : proposal.coverLetter)}
               className="neo-btn-primary flex-1 text-sm"
             >
               {copied.coverLetter ? "Copied!" : "Copy Cover Letter"}
@@ -287,12 +278,12 @@ export default function ProposalGenerator() {
             className="w-full flex items-center justify-between text-sm text-skin-tertiary hover:text-skin-primary py-2"
           >
             <span>Recent Proposals ({history.length})</span>
-            <span>{showHistory ? "▲" : "▼"}</span>
+            {showHistory ? <Icon name="chevronUp" className="w-3.5 h-3.5" /> : <Icon name="chevronDown" className="w-3.5 h-3.5" />}
           </button>
           {showHistory && (
             <div className="space-y-2 mt-2">
               {history.slice(0, 10).map((item) => (
-                <div key={item.id} className="neo-card text-xs">
+                <div key={item.id} className="neo-card-compact text-xs">
                   <div className="flex items-start justify-between gap-2">
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-skin-secondary truncate">{item.jobTitle}</p>
@@ -307,14 +298,14 @@ export default function ProposalGenerator() {
                         className="text-skin-accent hover:text-skin-soft"
                         title="Load"
                       >
-                        📄
+                        <Icon name="fileText" className="w-3.5 h-3.5" />
                       </button>
                       <button
                         onClick={() => handleHistoryCopy(item.text, item.id)}
                         className="text-skin-tertiary hover:text-skin-primary"
                         title="Copy"
                       >
-                        {historyCopied === item.id ? "✓" : "📋"}
+                        {historyCopied === item.id ? <Icon name="check" className="w-3.5 h-3.5" /> : <Icon name="copy" className="w-3.5 h-3.5" />}
                       </button>
                     </div>
                   </div>

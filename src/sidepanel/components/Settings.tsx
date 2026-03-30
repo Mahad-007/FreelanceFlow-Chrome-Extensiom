@@ -3,6 +3,7 @@ import { useUIStore } from "../store";
 import { AVAILABLE_MODELS, DEFAULT_SETTINGS } from "../../shared/constants";
 import type { ExtensionSettings, UserProfile } from "../../shared/types";
 import ProfileForm from "./ProfileForm";
+import Icon from "./Icon";
 
 interface Props {
   onClose?: () => void;
@@ -53,13 +54,13 @@ export default function Settings({ onClose }: Props) {
         <h2 className="text-xl font-bold text-skin-accent">Settings</h2>
         {onClose && (
           <button onClick={onClose} className="text-skin-tertiary hover:text-skin-primary text-lg">
-            ✕
+            <Icon name="close" className="w-4 h-4" />
           </button>
         )}
       </div>
 
       {!settings.openrouterApiKey && (
-        <div className="neo-card border-skin-brand bg-brand-subtle">
+        <div className="neo-alert-info">
           <p className="text-sm text-skin-soft">
             Welcome to FreelanceFlow! Enter your OpenRouter API key to get started.
             Get one at{" "}
@@ -75,7 +76,7 @@ export default function Settings({ onClose }: Props) {
         </div>
       )}
 
-      <div className="space-y-4">
+      <div className="space-y-5">
         {/* API Key */}
         <div>
           <label className="block text-sm font-medium text-skin-secondary mb-1">
@@ -181,7 +182,7 @@ export default function Settings({ onClose }: Props) {
       </button>
 
       {/* Profile Form */}
-      <div className="border-t-2 border-skin mt-6 pt-6">
+      <div className="border-t border-skin-subtle mt-6 pt-6">
         <ProfileForm
           initialProfile={profile}
           onSave={async (p) => {
