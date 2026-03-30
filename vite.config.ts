@@ -27,7 +27,7 @@ function copyAssetsPlugin() {
       const manifest = {
         manifest_version: 3,
         name: "FreelanceFlow",
-        version: "1.1.0",
+        version: "1.2.0",
         description:
           "AI-powered freelance assistant for Upwork — score jobs, generate proposals, improve your profile, and get chat suggestions.",
         permissions: ["storage", "activeTab", "sidePanel"],
